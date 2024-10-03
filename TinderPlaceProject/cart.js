@@ -45,8 +45,6 @@ function removeAllItems() {
     loadCartItems();
 }
 
-const removeAllItemsButton = document.getElementById("removeAll")
-
-removeAllItemsButton.addEventListener("click", removeAllItems);
+document.getElementById("removeAll").addEventListener("click", removeAllItems);
 
 window.onload = loadCartItems;
