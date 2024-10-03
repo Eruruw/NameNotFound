@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        TinderPlace
+    </title>
+    
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+        }
+        .card {
+            width: 300px;
+            padding: 20px;
+            margin: 10 px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .card img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+            position: absolute;
+            bottom: 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+        }
+
+        .cartIcon {
+            position: absolute;
+            top: 100px;
+            right: 500px;
+            width: 50px;
+        }
+
+    </style>
+</head>
+<body>
+    
+
+    <div class="card">
+            <img id="itemImage" src="" alt="Item Image">
+    </div>
+
+    <div class="controls">
+        <button id="dislikeBTN">
+            Dislike (Swipe Left)
+        </button>
+
+        <button id="likeBTN">
+            Like (Swipe Right)
+        </button>
+    </div>
+
+    <a href="cart.html">
+        <img src="IconImages/cartIcon.jpg" alt="Cart Icon" class="cartIcon">
+    </a>
+
+    <script src="app.js"></script>
+
+</body>
+</html>

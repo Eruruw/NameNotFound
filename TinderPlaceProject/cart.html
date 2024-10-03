@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>TinderPlace Cart</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        #cartItems {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cartItem {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 300px;
+            color: white;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .cartItem img {
+            width: 150px;
+            height: auto;
+        }
+
+        .cartItem button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Your TinderPlace Cart</h1>
+
+    <div id="cartItems"></div>
+
+    <div class="controls">
+        <a href="checkout.html">
+            <button id="checkout">Proceed to Checkout</button>
+        </a>
+
+        <button id="removeAll">Remove All Items</button>
+    </div>
+
+    <script src="cart.js"></script>
+
+</body>
+</html>
+
