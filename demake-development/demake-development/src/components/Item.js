@@ -56,9 +56,13 @@ const Item = () => {
     window.location.href = '/profile'; // Replace with proper routing if needed
   };
 
+  const goToChat = () => {
+    window.location.href = '/chat1'; // Replace with proper routing if needed
+  };
+
   return (
     <Container>
-      <h1>Your Item</h1>
+      <h1>Selling Section</h1>
       <Row className="mb-3">
         <Col>
           <Form.Group controlId="formFile">
@@ -105,10 +109,11 @@ const Item = () => {
       >
         Profile
       </Button>
+      {/* Profile button positioned in the top-right corner */}
       <Button
         variant="secondary"
         style={{ position: 'absolute', top: '20px', left: '20px' }}
-        onClick={goToProfile}
+        onClick={goToChat}
       >
         Chat
       </Button>

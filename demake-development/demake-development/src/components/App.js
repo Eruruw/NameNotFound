@@ -10,6 +10,13 @@ import ForgotPassword from "./ForgotPassword"
 import UpdateProfile from "./UpdateProfile"
 import Item from "./Item"
 import Profile from "./Profile"
+import Chat from "./Chat"
+import Chat2 from "./Chat2"
+
+// function ChatWrapper() {
+//   const { userId } = useParams();
+//   return <Chat currentUser={userId} />
+// }
 
 function App() {
   return (
@@ -24,6 +31,8 @@ function App() {
                 <Route path="/update-profile" element={<PrivateRoute><UpdateProfile/></PrivateRoute>} />
                 <Route path="/item" element={<PrivateRoute><Item/></PrivateRoute>} />
                 <Route path="/profile" element={<PrivateRoute><Profile/></PrivateRoute>} />
+                <Route path="/chat1" element={<PrivateRoute><Chat /></PrivateRoute>} />
+                <Route path="/chat2" element={<PrivateRoute><Chat2 /></PrivateRoute>} />
                 <Route path="/signup" element={<Signup/>} />
                 <Route path="/login" element={<Login/>} />
                 <Route path ="/forgot-password" element={<ForgotPassword/>} />
