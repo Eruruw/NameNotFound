@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { firestore, auth } from '../firestore'; // importing Firestore and auth from firestore.js
+import { firestore, auth } from '../firebase'; // importing Firestore and auth from firestore.js
 
 const Chat = () => {
   const [user, setUser] = useState(null); // Store the authenticated user
