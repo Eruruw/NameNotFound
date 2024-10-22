@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Title of the webpage -->
-    <title>Payment Page</title>
+    <title>confirmationPage</title>
 
     <style>
         /* Styles for the body */
@@ -32,40 +32,40 @@
             margin-bottom: 20px;
         }
 
-        /* Styles for the form */
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        /* Styles for paragraph */
+        p {
+            text-align: center;
+            margin-bottom: 20px;
         }
 
-        /* Styles for input fields and buttons */
-        input, button {
+        /* Style for the button */
+        button {
             margin: 5px 0;
             padding: 10px;
             width: 200px;
         }
+
     </style>
 </head>
 
 <body>
     <!-- Displays the title message -->
-    <h1>Payment Page</h1>
-
-    <!-- Payment form -->
-    <form id="paymentForm">
-        <input type="text" id="name" placeholder="Cardholder Name" /> 
-        <input type="text" id="cardNumber" placeholder="Card Number" /> 
-        <input type="text" id="expiry" placeholder="Expiry (MM/YY)" /> 
-        <input type="text" id="cvv" placeholder="CVV" /> 
-        <button type="submit">Submit Payment</button>
-    </form>
-
+    <h1>Thank You for Your Purchase!</h1>
+    
+    <!-- Displays cofirmation message -->
+    <p>Your order was successful</p>
+    
     <!-- Button to return to the app -->
     <button id="returnButton">Return to App</button>
 
-    <!-- Links to external javascript file for payment -->
-    <script src="payment.js"></script>
-</body>
+    <!-- Will go to javascript code to perform certain action -->
+    <script>
+        // Listens if the return button is clicked
+        document.getElementById("returnButton").addEventListener("click", function() {
 
+            // Goes to the app page if clicked
+            window.location.href = "index.html";
+        });
+    </script>
+</body>
 </html>

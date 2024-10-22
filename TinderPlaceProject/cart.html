@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <!-- Sets character encoding for the document to UTF-8 -->
+    <meta charset="UTF-8"> <!-- Specifies the character encoding for the document -->
+    
+    <!-- Ensures the webpage is displayed correctly -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Sets the title of the page -->
     <title>TinderPlace Cart</title>
 
     <style>
+        /* Styles for the body */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -18,17 +23,20 @@
             height: 100vh;
         }
 
+        /* Styles for the header */
         h1 {
             color: white;
             margin-bottom: 20px;
         }
 
+        /* Styles for the cart items container */
         #cartItems {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
+        /* Styles for individual cart items */
         .cartItem {
             display: flex;
             justify-content: space-between;
@@ -41,11 +49,13 @@
             border-radius: 8px;
         }
 
+        /* Styles for the images inside cart items */
         .cartItem img {
             width: 150px;
             height: auto;
         }
 
+        /* Styles for the buttons in cart items */
         .cartItem button {
             background-color: #e74c3c;
             color: white;
@@ -56,11 +66,13 @@
             margin-left: 10px;
         }
 
+        /* Styles for the controls buttons section */
         .controls {
             text-align: center;
             margin-top: 20px;
         }
 
+        /* Styles for the button */
         button {
             padding: 10px 20px;
             margin: 5px;
@@ -70,20 +82,23 @@
     </style>
 </head>
 <body>
+    <!-- Heading for the page -->
     <h1>Your TinderPlace Cart</h1>
 
+    <!-- Container for displaying cart items -->
     <div id="cartItems"></div>
 
+    <!-- Button that goes to the checkout page -->
     <div class="controls">
         <a href="checkout.html">
             <button id="checkout">Proceed to Checkout</button>
         </a>
 
+        <!-- Button to remove all items from the cart -->
         <button id="removeAll">Remove All Items</button>
     </div>
 
+    <!-- Links to external javascript cart file -->
     <script src="cart.js"></script>
-
 </body>
 </html>
-
