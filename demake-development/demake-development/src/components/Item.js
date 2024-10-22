@@ -1,63 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Container, Row, Col } from 'react-bootstrap';
+import { Button, Form, Container, Row, Col, Carousel } from 'react-bootstrap';
 
 const Item = () => {
-  const [imageSrc, setImageSrc] = useState(null);
+  const [images, setImages] = useState([]);
   const [description, setDescription] = useState('');
 
-  // Function to load image and text from localStorage when the component mounts
+  // Load images and text from localStorage when the component mounts
   useEffect(() => {
-    const savedImage = localStorage.getItem('profile_uploadedImage');
+    const savedImages = JSON.parse(localStorage.getItem('profile_uploadedImages'));
     const savedText = localStorage.getItem('profile_savedText');
 
-    if (savedImage) {
-      setImageSrc(savedImage); // Set the saved image as the image source
+    if (savedImages) {
+      setImages(savedImages); // Set saved images
     }
 
     if (savedText) {
-      setDescription(savedText); // Set the saved text in the text box
+      setDescription(savedText); // Set the saved text
     }
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
-  // Function to handle image upload and save it to localStorage
+  // Handle image upload and save them to localStorage
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
+    const fileList = event.target.files;
+    const imageFiles = Array.from(fileList).filter(file => file.type.startsWith('image/'));
 
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
+    if (imageFiles.length) {
+      const newImages = [...images];
 
-      reader.onload = (e) => {
-        setImageSrc(e.target.result); // Display the image
-        localStorage.setItem('profile_uploadedImage', e.target.result); // Save image to localStorage
-      };
-
-      reader.readAsDataURL(file); // Read file as Data URL
+      imageFiles.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          newImages.push(e.target.result); // Add the new image to the array
+          setImages(newImages); // Update state
+          localStorage.setItem('profile_uploadedImages', JSON.stringify(newImages)); // Save images to localStorage
+        };
+        reader.readAsDataURL(file);
+      });
     } else {
-      alert('Please select a valid image file.');
+      alert('Please select valid image files.');
     }
   };
 
-  // Function to handle text input and save it to localStorage
+  // Save the description to localStorage
   const handleSaveDescription = () => {
-    localStorage.setItem('profile_savedText', description); // Save text to localStorage
+    localStorage.setItem('profile_savedText', description);
     alert('Text saved successfully!');
   };
 
-  // Function to remove image and text from localStorage
+  // Delete images and description from localStorage
   const handleDelete = () => {
-    localStorage.removeItem('profile_uploadedImage'); // Remove image from localStorage
-    setImageSrc(''); // Clear the image display
-
-    localStorage.removeItem('profile_savedText'); // Remove text from localStorage
-    setDescription(''); // Clear the text box
+    localStorage.removeItem('profile_uploadedImages');
+    setImages([]);
+    localStorage.removeItem('profile_savedText');
+    setDescription('');
   };
 
   const goToProfile = () => {
-    window.location.href = '/profile'; // Replace with proper routing if needed
+    window.location.href = '/profile';
   };
 
   const goToChat = () => {
-    window.location.href = '/chat1'; // Replace with proper routing if needed
+    window.location.href = '/chat1';
   };
 
   return (
@@ -66,21 +69,30 @@ const Item = () => {
       <Row className="mb-3">
         <Col>
           <Form.Group controlId="formFile">
-            <Form.Label>Upload Image</Form.Label>
-            <Form.Control type="file" accept="image/*" onChange={handleImageUpload} />
+            <Form.Label>Upload Images</Form.Label>
+            <Form.Control type="file" accept="image/*" multiple onChange={handleImageUpload} />
           </Form.Group>
         </Col>
       </Row>
 
-      {/* Image element to display the uploaded image */}
-      {imageSrc ? (
-        <img src={imageSrc} style={{ maxWidth: '400px', maxHeight: '400px', borderRadius: '10px' }} alt="Uploaded" />
+      {/* Carousel to scroll through uploaded images */}
+      {images.length > 0 ? (
+        <Carousel>
+          {images.map((imageSrc, index) => (
+            <Carousel.Item key={index}>
+              <img
+                src={imageSrc}
+                alt={`Uploaded ${index + 1}`}
+                style={{ maxWidth: '400px', maxHeight: '400px', borderRadius: '10px' }}
+              />
+            </Carousel.Item>
+          ))}
+        </Carousel>
       ) : (
-        <p>No image uploaded yet.</p>
+        <p>No images uploaded yet.</p>
       )}
 
       <h1 className="mt-4">Describe Your Item</h1>
-      {/* Text box for input */}
       <Form.Group controlId="formDescription">
         <Form.Control
           type="text"
@@ -109,7 +121,8 @@ const Item = () => {
       >
         Profile
       </Button>
-      {/* Profile button positioned in the top-right corner */}
+
+      {/* Chat button positioned in the top-left corner */}
       <Button
         variant="secondary"
         style={{ position: 'absolute', top: '20px', left: '20px' }}
