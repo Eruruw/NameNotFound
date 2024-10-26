@@ -1,58 +1,72 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Container, Row, Col, Carousel } from 'react-bootstrap';
+import { firestore, storage } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 const Item = () => {
+  const { currentUser } = useAuth();
   const [images, setImages] = useState([]);
   const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
 
-  // Load images and text from localStorage when the component mounts
   useEffect(() => {
-    const savedImages = JSON.parse(localStorage.getItem('profile_uploadedImages'));
-    const savedText = localStorage.getItem('profile_savedText');
-
-    if (savedImages) {
-      setImages(savedImages); // Set saved images
+    if (currentUser) {
+      firestore.collection('items').doc(currentUser.uid).get().then(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          setImages(data.images || []);
+          setDescription(data.description || '');
+          setPrice(data.price || '');
+        }
+      });
     }
+  }, [currentUser]);
 
-    if (savedText) {
-      setDescription(savedText); // Set the saved text
-    }
-  }, []);
-
-  // Handle image upload and save them to localStorage
-  const handleImageUpload = (event) => {
+  const handleImageUpload = async (event) => {
     const fileList = event.target.files;
     const imageFiles = Array.from(fileList).filter(file => file.type.startsWith('image/'));
 
-    if (imageFiles.length) {
+    if (imageFiles.length && currentUser) {
       const newImages = [...images];
 
-      imageFiles.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          newImages.push(e.target.result); // Add the new image to the array
-          setImages(newImages); // Update state
-          localStorage.setItem('profile_uploadedImages', JSON.stringify(newImages)); // Save images to localStorage
-        };
-        reader.readAsDataURL(file);
-      });
+      for (const file of imageFiles) {
+        const storageRef = storage.ref(`images/${currentUser.uid}/${file.name}`);
+        const snapshot = await storageRef.put(file);
+        const url = await snapshot.ref.getDownloadURL();
+        newImages.push(url);
+      }
+
+      setImages(newImages);
+      await firestore.collection('items').doc(currentUser.uid).set({
+        images: newImages,
+      }, { merge: true });
     } else {
       alert('Please select valid image files.');
     }
   };
 
-  // Save the description to localStorage
-  const handleSaveDescription = () => {
-    localStorage.setItem('profile_savedText', description);
-    alert('Text saved successfully!');
+  const handleSaveDescription = async () => {
+    if (currentUser) {
+      await firestore.collection('items').doc(currentUser.uid).set({
+        description,
+        price,
+      }, { merge: true });
+      alert('Description and price saved successfully!');
+    }
   };
 
-  // Delete images and description from localStorage
-  const handleDelete = () => {
-    localStorage.removeItem('profile_uploadedImages');
-    setImages([]);
-    localStorage.removeItem('profile_savedText');
-    setDescription('');
+  const handleDelete = async () => {
+    if (currentUser) {
+      for (const imageUrl of images) {
+        const storageRef = storage.refFromURL(imageUrl);
+        await storageRef.delete();
+      }
+
+      await firestore.collection('items').doc(currentUser.uid).delete();
+      setImages([]);
+      setDescription('');
+      setPrice('');
+    }
   };
 
   const goToProfile = () => {
@@ -62,7 +76,14 @@ const Item = () => {
   const goToChat = () => {
     window.location.href = '/chat1';
   };
+  const goToMatchScreen = () => {
+    window.location.href = '/match';
+  };
 
+  const goToSwipeScreen = () => {
+    window.location.href = '/swipe';
+  };
+  
   return (
     <Container>
       <h1>Selling Section</h1>
@@ -75,7 +96,6 @@ const Item = () => {
         </Col>
       </Row>
 
-      {/* Carousel to scroll through uploaded images */}
       {images.length > 0 ? (
         <Carousel>
           {images.map((imageSrc, index) => (
@@ -83,7 +103,7 @@ const Item = () => {
               <img
                 src={imageSrc}
                 alt={`Uploaded ${index + 1}`}
-                style={{ maxWidth: '400px', maxHeight: '400px', borderRadius: '10px' }}
+                style={{ maxWidth: '100%', height: 'auto', borderRadius: '10px' }}
               />
             </Carousel.Item>
           ))}
@@ -92,7 +112,7 @@ const Item = () => {
         <p>No images uploaded yet.</p>
       )}
 
-      <h1 className="mt-4">Describe Your Item</h1>
+<h1 className="mt-4">Describe Your Item</h1>
       <Form.Group controlId="formDescription">
         <Form.Control
           type="text"
@@ -102,7 +122,17 @@ const Item = () => {
         />
       </Form.Group>
 
-      {/* Button to save the text */}
+      <h1 className="mt-5">What's your asking price?</h1>
+      <Form.Group controlId="formPrice">
+        <Form.Control
+          type="text"
+          placeholder="Enter your desired price here"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+      </Form.Group>
+
+      {/* Button to save the text and price */}
       <Button variant="primary" onClick={handleSaveDescription}>
         Save Description
       </Button>
@@ -129,6 +159,22 @@ const Item = () => {
         onClick={goToChat}
       >
         Chat
+      </Button>
+        {/* match button positioned in the top-left corner */}
+        <Button
+        variant="secondary"
+        style={{ position: 'absolute', top: '80px', left: '20px' }}
+        onClick={goToMatchScreen}
+      >
+        Match
+      </Button>
+
+      <Button
+        variant="secondary"
+        style={{ position: 'absolute', top: '20px', right: '160px' }}
+        onClick={goToSwipeScreen}
+      >
+        Swiping
       </Button>
     </Container>
   );
