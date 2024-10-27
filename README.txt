@@ -11,4 +11,6 @@ React-Bootstrap: npm install bootstrap react-bootstrap
 
 Firebase: npm install firebase
 
+For the google api: npm install @react-google-maps/api
+
 **Make sure you are in the directory with react to download all of this stuff so you're whole project has access to it**
