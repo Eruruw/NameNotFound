@@ -80,6 +80,10 @@ const Profile = () => {
     window.location.href = '/';
   };
 
+  const goToHelp = () => {
+    window.location.href = '/help';
+  };
+
   return (
     <Container
       fluid
@@ -168,6 +172,13 @@ const Profile = () => {
             onClick={goToUserInfo}
           >
             User Information
+          </Button>
+          <Button
+            variant="secondary"
+            style={{ position: 'absolute', top: '140px', right: '20px' }}
+            onClick={goToHelp}
+          >
+            Help
           </Button>
         </Form>
       </div>
