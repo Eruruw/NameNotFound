@@ -74,7 +74,7 @@ const Item = () => {
   };
 
   const goToChat = () => {
-    window.location.href = '/chat1';
+    window.location.href = '/chat';
   };
   const goToMatchScreen = () => {
     window.location.href = '/match';
