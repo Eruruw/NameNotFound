@@ -13,6 +13,7 @@ import Profile from "./Profile"
 import Chat from "./Chat"
 import Match from "./Match_Screen"
 import Swipe from "./Swiping"
+import Recommended from "./Recommended"
 
 // function ChatWrapper() {
 //   const { userId } = useParams();
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
                 <Route path="/match" element={<PrivateRoute><Match /></PrivateRoute>} />
                 <Route path="/swipe" element={<PrivateRoute><Swipe /></PrivateRoute>} />
+                <Route path="/recommended" element={<PrivateRoute><Recommended /></PrivateRoute>} />
                 <Route path="/signup" element={<Signup/>} />
                 <Route path="/login" element={<Login/>} />
                 <Route path ="/forgot-password" element={<ForgotPassword/>} />
