@@ -1,108 +1,95 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Container, Row, Col } from 'react-bootstrap';
+import { firestore, storage } from "../firebase";
+import { useAuth } from '../contexts/AuthContext';
 
 const Profile = () => {
+  const { currentUser } = useAuth();
   const [imageSrc, setImageSrc] = useState(null);
   const [name, setName] = useState('');
   const [location, setLocation] = useState('Option1');
   const [category, setCategory] = useState('Choice1');
 
-  // Load data from localStorage on component mount
   useEffect(() => {
-    loadImageAndText();
-    loadDropdowns();
-  }, []);
-
-  // Function to load image and text from localStorage
-  const loadImageAndText = () => {
-    const savedImage = localStorage.getItem('item_uploadedImage');
-    const savedText = localStorage.getItem('item_savedText');
-
-    if (savedImage) {
-      setImageSrc(savedImage);
+    if (currentUser) {
+      loadUserData();
     }
+  }, [currentUser]);
 
-    if (savedText) {
-      setName(savedText);
+  const loadUserData = async () => {
+    const doc = await firestore.collection('profiles').doc(currentUser.uid).get();
+    if (doc.exists) {
+      const data = doc.data();
+      setImageSrc(data.image || null);
+      setName(data.name || '');
+      setLocation(data.location || 'Option1');
+      setCategory(data.category || 'Choice1');
     }
   };
 
-  // Function to load dropdown selections from localStorage
-  const loadDropdowns = () => {
-    const savedDropdown1 = localStorage.getItem('item_dropdown1Selection');
-    const savedDropdown2 = localStorage.getItem('item_dropdown2Selection');
-
-    if (savedDropdown1) {
-      setLocation(savedDropdown1);
-    }
-
-    if (savedDropdown2) {
-      setCategory(savedDropdown2);
-    }
-  };
-
-  // Function to handle image upload and save to localStorage
-  const handleImageUpload = (event) => {
+  const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImageSrc(e.target.result);
-        localStorage.setItem('item_uploadedImage', e.target.result);
-      };
-      reader.readAsDataURL(file);
+      const storageRef = storage.ref(`profilePictures/${currentUser.uid}/${file.name}`);
+      await storageRef.put(file);
+      const url = await storageRef.getDownloadURL();
+
+      setImageSrc(url);
+      await firestore.collection('profiles').doc(currentUser.uid).set({
+        image: url
+      }, { merge: true });
     } else {
       alert('Please select a valid image file.');
     }
   };
 
-  // Function to handle name input and save to localStorage
-  const handleSaveDescription = () => {
-    localStorage.setItem('item_savedText', name);
-    alert('Text saved successfully!');
+  const handleSaveDescription = async () => {
+    await firestore.collection('profiles').doc(currentUser.uid).set({
+      name
+    }, { merge: true });
+    alert('Name saved successfully!');
   };
 
-  // Function to handle dropdown selections and save to localStorage
-  const handleSavePreferences = () => {
-    localStorage.setItem('item_dropdown1Selection', location);
-    localStorage.setItem('item_dropdown2Selection', category);
-    alert('Dropdown selections saved successfully!');
+  const handleSavePreferences = async () => {
+    await firestore.collection('profiles').doc(currentUser.uid).set({
+      location,
+      category
+    }, { merge: true });
+    alert('Preferences saved successfully!');
   };
 
-  // Function to remove image, text, and dropdown selections from localStorage
-  const handleDelete = () => {
-    localStorage.removeItem('item_uploadedImage');
+  const handleDelete = async () => {
+    if (imageSrc) {
+      const storageRef = storage.refFromURL(imageSrc);
+      await storageRef.delete();
+    }
+
+    await firestore.collection('profiles').doc(currentUser.uid).delete();
+
     setImageSrc(null);
-
-    localStorage.removeItem('item_savedText');
     setName('');
-
-    localStorage.removeItem('item_dropdown1Selection');
     setLocation('Option1');
-
-    localStorage.removeItem('item_dropdown2Selection');
     setCategory('Choice1');
   };
 
   const goToItem = () => {
-    window.location.href = '/item'; // Replace with proper routing if needed
+    window.location.href = '/item';
   };
 
   const goToUserInfo = () => {
-    window.location.href = '/'; // Replace with proper routing if needed
+    window.location.href = '/';
   };
 
   return (
-    <Container 
-      fluid 
-      style={{ 
-        //backgroundColor: 'aquamarine',
+    <Container
+      fluid
+      style={{
         minHeight: '100vh',
-        padding: '0', // Remove padding for full width
-        margin: '0', // Remove margin for full width
+        padding: '0',
+        margin: '0',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center', 
+        alignItems: 'center',
       }}>
       <div style={{ width: '100%', maxWidth: '600px' }}>
         <h1>Profile</h1>
@@ -112,7 +99,6 @@ const Profile = () => {
             <Form.Control type="file" accept="image/*" onChange={handleImageUpload} />
           </Form.Group>
 
-          {/* Image element to display the uploaded image */}
           {imageSrc && (
             <Row className="mb-3">
               <Col>
@@ -136,7 +122,7 @@ const Profile = () => {
           </Form.Group>
 
           <Button variant="primary" onClick={handleSaveDescription}>
-            Save Description
+            Save Name
           </Button>
 
           <h1 className="mt-4">Please select your preference of items and location</h1>
@@ -169,7 +155,6 @@ const Profile = () => {
             Delete
           </Button>
 
-          {/* Profile button positioned in the top-right corner */}
           <Button
             variant="secondary"
             style={{ position: 'absolute', top: '20px', right: '20px' }}
@@ -189,6 +174,5 @@ const Profile = () => {
     </Container>
   );
 };
-
 
 export default Profile;
