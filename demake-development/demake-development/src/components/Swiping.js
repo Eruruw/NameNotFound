@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
-
-// Import images and cart icon
-import image1 from '../assets/image1.jpg';
-import image2 from '../assets/image2.jpg';
-import image3 from '../assets/image3.jpg';
-import image4 from '../assets/image4.jpg';
-import image5 from '../assets/image5.jpg';
+import { firestore } from "../firebase";  // Import Firestore
 import cartIcon from '../assets/cartIcon.jpg';  // Importing the cart icon
 
-const imagePaths = [image1, image2, image3, image4, image5];
-
 const SwipeForItems = () => {
+  const [items, setItems] = useState([]); // Stores items fetched from Firestore
   const [index, setIndex] = useState(0);
   const [cart, setCart] = useState([]);
+  
   const goToProfile = () => {
-    window.location.href = '/profile'
-  }
+    window.location.href = '/profile';
+  };
+
+  // Fetch items from Firestore on component mount
+  useEffect(() => {
+    const fetchItems = async () => {
+      const itemsCollection = await firestore.collection('items').get();
+      const itemsList = itemsCollection.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setItems(itemsList);
+    };
+    
+    fetchItems();
+  }, []);
 
   // Load cart from localStorage on component mount
   useEffect(() => {
@@ -28,22 +33,22 @@ const SwipeForItems = () => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const getImage = () => {
-    return imagePaths[index];
-  };
+  const currentItem = items[index]; // Get the current item to display
 
   const handleLike = () => {
-    const currentItem = imagePaths[index];
-    if (!cart.includes(currentItem)) {
+    if (currentItem && !cart.some(item => item.id === currentItem.id)) {
       setCart([...cart, currentItem]);
     }
-    setIndex((prevIndex) => (prevIndex + 1) % imagePaths.length);
+    setIndex((prevIndex) => (prevIndex + 1) % items.length);
   };
 
   const handleDislike = () => {
-    setIndex((prevIndex) => (prevIndex + 1) % imagePaths.length);
+    setIndex((prevIndex) => (prevIndex + 1) % items.length);
   };
 
+  if (items.length === 0) {
+    return <p>Loading items...</p>;  // Show loading message while items are being fetched
+  }
 
   return (
     <div style={styles.body}>
@@ -51,7 +56,14 @@ const SwipeForItems = () => {
         <button onClick={goToProfile} style={styles.profileButton}>Profile</button>
       </div>
       <div style={styles.card}>
-        <img id="itemImage" src={getImage()} alt="Item to buy" style={styles.image} />
+        {/* Display the current item image if it exists, otherwise show a placeholder */}
+        {currentItem?.images?.[0] ? (
+          <img src={currentItem.images[0]} alt="Item to buy" style={styles.image} />
+        ) : (
+          <p style={styles.description}>Image not available</p>
+        )}
+        <p style={styles.description}>{currentItem?.description}</p>
+        <p style={styles.price}>${currentItem?.price}</p>
       </div>
       <div style={styles.controls}>
         <button onClick={handleDislike} style={styles.button}>Dislike (Swipe Left)</button>
@@ -65,7 +77,6 @@ const SwipeForItems = () => {
   );
 };
 
-
 const styles = {
   body: {
     fontFamily: 'Arial, sans-serif',
@@ -74,7 +85,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'white',
     flexDirection: 'column',
   },
   card: {
@@ -91,6 +102,15 @@ const styles = {
     maxWidth: '100%',
     maxHeight: '100%',
     borderRadius: '10px',
+  },
+  description: {
+    color: 'black',
+    marginTop: '10px',
+  },
+  price: {
+    color: 'limegreen',
+    fontSize: '1.2em',
+    marginTop: '5px',
   },
   controls: {
     textAlign: 'center',
@@ -120,9 +140,8 @@ const styles = {
     backgroundColor: 'blue',
     border: 'none',
     borderRadius: '5px',
-    curser: 'pointer',
+    cursor: 'pointer',
   },
-
 };
 
 export default SwipeForItems;
