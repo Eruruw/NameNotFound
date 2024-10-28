@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
-import { Form, Container, Row, Col, Button } from 'react-bootstrap';
+import React from 'react';
+import { Container, Button, Row, Col } from 'react-bootstrap';
 
-// Define the Item component
 const Match = () => {
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-
-  // Functions to handle navigation
+  // Navigation functions
   const goToSwipeScreen = () => {
     window.location.href = '/swipe';
   };
@@ -16,50 +12,21 @@ const Match = () => {
   };
 
   return (
-    <Container>
-      <h1>Component Loaded</h1> {/* Visible title to ensure the component is rendering */}
-
-      <h1>YOU SWIPED ON THE RIGHT DEAL</h1>
-      <Row className="mb-3">
-        <Col>
-          <Form.Group controlId="formTitle">
-            <Form.Control
-              type="text"
-              placeholder="Choose one of the following!"
-            />
-          </Form.Group>
+    <Container className="text-center mt-5">
+      <h1>That's a Swipe Right on the Right Deal!</h1>
+      <p>Choose your next step:</p>
+      <Row className="justify-content-center mt-4">
+        <Col xs="auto">
+          <Button variant="primary" onClick={goToSwipeScreen}>
+            Continue Swiping
+          </Button>
+        </Col>
+        <Col xs="auto">
+          <Button variant="success" onClick={goToChat}>
+            Chat
+          </Button>
         </Col>
       </Row>
-
-      <h1 className="mt-4">Describe Your Item</h1>
-      <Form.Group controlId="formDescription">
-        <Form.Control
-          type="text"
-          placeholder="Enter your description here"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </Form.Group>
-
-      <h1 className="mt-5">What's your asking price?</h1>
-      <Form.Group controlId="formPrice">
-        <Form.Control
-          type="text"
-          placeholder="Enter your desired price here"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-      </Form.Group>
-
-      {/* Profile button */}
-      <Button variant="secondary" onClick={goToSwipeScreen} className="mt-4">
-        Continue swiping
-      </Button>
-
-      {/* Chat button */}
-      <Button variant="secondary" onClick={goToChat} className="mt-4 ml-2">
-        Chat
-      </Button>
     </Container>
   );
 };
