@@ -7,6 +7,7 @@ import { Button } from 'react-bootstrap'; // Import Button from React Bootstrap
 const SwipeForItems = () => {
   const [items, setItems] = useState([]); // Stores items fetched from Firestore
   const [index, setIndex] = useState(0);
+  const [imageIndex, setImageIndex] = useState(0);
   const [cart, setCart] = useState([]);
   const [lastAction, setLastAction] = useState(null); // Track the last action
 
@@ -41,11 +42,13 @@ const SwipeForItems = () => {
       setLastAction({ type: 'like', item: currentItem });
     }
     setIndex((prevIndex) => (prevIndex + 1) % items.length);
+    setImageIndex(0);
   };
 
   const handleDislike = () => {
     setLastAction({ type: 'dislike', item: currentItem });
     setIndex((prevIndex) => (prevIndex + 1) % items.length);
+    setImageIndex(0);
   };
 
   // Undo the last action
@@ -55,9 +58,24 @@ const SwipeForItems = () => {
         setCart(cart.filter(item => item.id !== lastAction.item.id));
       }
       setIndex((prevIndex) => (prevIndex - 1 + items.length) % items.length);
+      setImageIndex(0);
       setLastAction(null); // Clear the last action
     }
   };
+
+  const nextImage = () => {
+    if (currentItem?.images) {
+      setImageIndex((prevIndex) => (prevIndex + 1) % currentItem.images.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (currentItem?.images) {
+      setImageIndex((prevIndex) => (prevIndex - 1 + currentItem.images.length) % currentItem.images.length);
+    }
+  };
+
+
 
   if (items.length === 0) {
     return <p>Loading items...</p>;  // Show loading message while items are being fetched
@@ -71,18 +89,20 @@ const SwipeForItems = () => {
         </Link>
       </div>
       <div style={styles.card}>
-        {/* Display the current item image if it exists, otherwise show a placeholder */}
-        {currentItem?.images?.[0] ? (
-          <img src={currentItem.images[0]} alt="Item to buy" style={styles.image} />
+        {currentItem?.images?.[imageIndex] ? (
+          <img src={currentItem.images[imageIndex]} alt="Item to buy" style={styles.image} />
         ) : (
           <p style={styles.description}>Image not available</p>
         )}
         <p style={styles.description}>{currentItem?.description}</p>
         <p style={styles.price}>${currentItem?.price}</p>
-        {/* Add button to view seller profile */}
         <Link to={`/user/${currentItem?.sellerId}`}>
           <Button variant="success" style={styles.viewProfileButton}>View Seller Profile</Button>
         </Link>
+        <div style={styles.imageControls}>
+          <Button onClick={prevImage} disabled={currentItem?.images?.length <= 1}>Previous</Button>
+          <Button onClick={nextImage} disabled={currentItem?.images?.length <= 1}>Next</Button>
+        </div>
       </div>
       <div style={styles.controls}>
         <Button onClick={handleDislike} variant="outline-danger" style={styles.button}>
@@ -91,19 +111,16 @@ const SwipeForItems = () => {
         <Button onClick={handleLike} variant="outline-primary" style={styles.button}>
           Like (Swipe Right)
         </Button>
-        {/* Undo Button */}
         <Button onClick={handleUndo} variant="warning" style={styles.undoButton} disabled={!lastAction}>
           Undo
         </Button>
       </div>
-      {/* Cart Icon */}
       <a href="cart.html">
         <img src={cartIcon} alt="Cart" style={styles.cartIcon} />
       </a>
     </div>
   );
 };
-
 const styles = {
   body: {
     fontFamily: 'Arial, sans-serif',
@@ -172,6 +189,11 @@ const styles = {
     padding: '10px 15px',
     fontSize: '16px',
     marginTop: '10px', // Add margin for spacing
+  },
+  imageControls: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginTop: '10px',
   },
 };
 
