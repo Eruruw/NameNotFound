@@ -14,6 +14,7 @@ import Chat from "./Chat"
 import Match from "./Match_Screen"
 import Swipe from "./Swiping"
 import Recommended from "./Recommended"
+import Help from "./Help.js"
 
 // function ChatWrapper() {
 //   const { userId } = useParams();
@@ -40,6 +41,7 @@ function App() {
                 <Route path="/signup" element={<Signup/>} />
                 <Route path="/login" element={<Login/>} />
                 <Route path ="/forgot-password" element={<ForgotPassword/>} />
+				<Route path="/help" element={<PrivateRoute><Help /></PrivateRoute>} />
               </Routes>
             </AuthProvider>
           </Router>
