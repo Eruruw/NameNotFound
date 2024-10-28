@@ -76,6 +76,7 @@ const Item = () => {
   const goToChat = () => {
     window.location.href = '/chat';
   };
+  
   const goToMatchScreen = () => {
     window.location.href = '/match';
   };
@@ -83,7 +84,19 @@ const Item = () => {
   const goToSwipeScreen = () => {
     window.location.href = '/swipe';
   };
-  
+
+  // Function to handle price input change
+  const handlePriceChange = (e) => {
+    const value = e.target.value;
+
+    // Check if the value is a valid number or empty
+    if (/^\d*\.?\d*$/.test(value)) {
+      setPrice(value);
+    } else {
+      alert('Please enter a valid number for the price.');
+    }
+  };
+
   return (
     <Container>
       <h1>Selling Section</h1>
@@ -112,7 +125,7 @@ const Item = () => {
         <p>No images uploaded yet.</p>
       )}
 
-<h1 className="mt-4">Describe Your Item</h1>
+      <h1 className="mt-4">Describe Your Item</h1>
       <Form.Group controlId="formDescription">
         <Form.Control
           type="text"
@@ -128,7 +141,7 @@ const Item = () => {
           type="text"
           placeholder="Enter your desired price here"
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={handlePriceChange} // Updated to use the new handler
         />
       </Form.Group>
 
@@ -160,8 +173,9 @@ const Item = () => {
       >
         Chat
       </Button>
-        {/* match button positioned in the top-left corner */}
-        <Button
+
+      {/* Match button positioned in the top-left corner */}
+      <Button
         variant="secondary"
         style={{ position: 'absolute', top: '80px', left: '20px' }}
         onClick={goToMatchScreen}
