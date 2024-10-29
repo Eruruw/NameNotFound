@@ -25,36 +25,37 @@ const Item = () => {
   const handleImageUpload = async (event) => {
     const fileList = event.target.files;
     const imageFiles = Array.from(fileList).filter(file => file.type.startsWith('image/'));
-
+  
     if (imageFiles.length && currentUser) {
       const newImages = [...images];
-
+  
       for (const file of imageFiles) {
         const storageRef = storage.ref(`images/${currentUser.uid}/${file.name}`);
         const snapshot = await storageRef.put(file);
         const url = await snapshot.ref.getDownloadURL();
         newImages.push(url);
       }
-
+  
       setImages(newImages);
       await firestore.collection('items').doc(currentUser.uid).set({
         images: newImages,
+        sellerId: currentUser.uid, // Add sellerId here
       }, { merge: true });
     } else {
       alert('Please select valid image files.');
     }
   };
-
+  
   const handleSaveDescription = async () => {
     if (currentUser) {
       await firestore.collection('items').doc(currentUser.uid).set({
         description,
         price,
+        sellerId: currentUser.uid, // Add sellerId here
       }, { merge: true });
       alert('Description and price saved successfully!');
     }
   };
-
   const handleDelete = async () => {
     if (currentUser) {
       for (const imageUrl of images) {
