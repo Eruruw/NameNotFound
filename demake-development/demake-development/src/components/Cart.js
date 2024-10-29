@@ -1,24 +1,87 @@
 import React, { useEffect, useState } from 'react';
+import { firestore } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 function Cart() {
+    const { currentUser } = useAuth();
     const [cartItems, setCartItems] = useState([]);
 
     useEffect(() => {
-        const items = JSON.parse(localStorage.getItem("cart")) || [];
-        setCartItems(items);
-    }, []);
+        const fetchCartItems = async () => {
+            if (!currentUser) {
+                console.warn("No user is logged in.");
+                return;
+            }
 
-    const removeItem = (index) => {
-        const updatedCart = [...cartItems];
-        updatedCart.splice(index, 1);
-        setCartItems(updatedCart);
+            try {
+                
+                console.log("Fetching liked items for user:", currentUser.uid);
 
-        localStorage.setItem("cart", JSON.stringify(updatedCart));
+                const userLikesRef = firestore.collection('userLikes');
+                const likedItemsSnapshot = await userLikesRef
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+
+                if (likedItemsSnapshot.empty) {
+                    console.log("No liked items found for this user.");
+                    setCartItems([]);
+                    return;
+                }
+
+                const itemIds = likedItemsSnapshot.docs.map(doc => doc.data().itemId);
+                console.log("Liked item IDs:", itemIds);
+
+                const itemsRef = firestore.collection('items');
+                const itemsSnapshot = await itemsRef.where("__name__", "in", itemIds).get();
+                const items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log("Fetched item details:", items);
+
+                setCartItems(items);
+            }
+            
+            catch (error) {
+                console.error("Error fetching cart items:", error);
+            }
+        };
+
+        fetchCartItems();
+    }, [currentUser]);
+
+    const removeItem = async (itemId) => {
+        try {
+
+            const userLikesRef = firestore.collection('userLikes');
+            const snapshot = await userLikesRef
+                .where("userId", "==", currentUser.uid)
+                .where("itemId", "==", itemId)
+                .get();
+
+            snapshot.forEach(doc => doc.ref.delete());
+
+            setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
+        }
+        
+        catch (error) {
+            console.error("Error removing item from cart:", error);
+        }
     };
 
-    const removeAllItems = () => {
-        setCartItems([]);
-        localStorage.removeItem("cart");
+    const removeAllItems = async () => {
+        try {
+            
+            const userLikesRef = firestore.collection('userLikes');
+            const snapshot = await userLikesRef.where("userId", "==", currentUser.uid).get();
+
+            const batch = firestore.batch();
+            snapshot.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+
+            setCartItems([]);
+        }
+        
+        catch (error) {
+            console.error("Error clearing cart:", error);
+        }
     };
 
     const proceedToCheckout = () => {
@@ -44,11 +107,11 @@ function Cart() {
                 {cartItems.length === 0 ? (
                     <p>Your cart is empty.</p>
                 ) : (
-                    cartItems.map((item, index) => (
-                        <div style={styles.cartItem} key={index}>
+                    cartItems.map((item) => (
+                        <div style={styles.cartItem} key={item.id}>
                             <p>{item.description}</p>
                             <p><strong>Price:</strong> ${item.price}</p>
-                            <button style={styles.deleteButton} onClick={() => removeItem(index)}>Delete Item</button>
+                            <button style={styles.deleteButton} onClick={() => removeItem(item.id)}>Delete Item</button>
                         </div>
                     ))
                 )}
