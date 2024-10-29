@@ -132,9 +132,6 @@ export default function DashBoard() {
                 <Link to="/item">Items</Link>
             </div>
             <div className="w-100 text-center mt-2">
-                <Link to="/recommended">Recommended For You</Link>
-            </div>
-            <div className="w-100 text-center mt-2">
                 <Button variant="link" onClick={handleLogout}>Log Out</Button>
             </div>
             
