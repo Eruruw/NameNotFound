@@ -12,21 +12,25 @@ export default function Recommended() {
     useEffect(() => {
         const fetchRecommendedItems = async () => {
             if (!currentUser) return;
-            
+
             try {
-                const userRef = collection(db, "users");
-                const userDoc = await getDocs(query(userRef, where("uid", "==", currentUser.uid)));
-                const userData = userDoc.docs[0]?.data();
+                // Step 1: Get liked items from userLikes collection for the current user
+                const likesRef = collection(db, "userLikes");
+                const likedItemsSnapshot = await getDocs(query(likesRef, where("userId", "==", currentUser.uid)));
                 
-                if (userData) {
+                // Get array of liked item IDs
+                const likedItemIds = likedItemsSnapshot.docs.map(doc => doc.data().itemId);
+
+                if (likedItemIds.length > 0) {
+                    // Step 2: Query items collection based on liked item IDs or similar criteria
                     const itemsRef = collection(db, "items");
-                    
-                    // Example: Fetch items based on location proximity, using dummy criteria
-                    const recommendedQuery = query(itemsRef, where("location", "==", userData.location));
+                    const recommendedQuery = query(itemsRef, where("__name__", "in", likedItemIds));
                     const recommendedSnapshot = await getDocs(recommendedQuery);
+
                     const items = recommendedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
                     setRecommendedItems(items);
+                } else {
+                    setRecommendedItems([]); // No liked items, no recommendations
                 }
             } catch (error) {
                 console.error("Error fetching recommended items: ", error);
