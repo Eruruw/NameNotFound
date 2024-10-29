@@ -105,7 +105,7 @@ const SwipeForItems = () => {
           Undo
         </Button>
       </div>
-      <a href="cart.html">
+      <a href="/cart">
         <img src={cartIcon} alt="Cart" style={styles.cartIcon} />
       </a>
     </div>

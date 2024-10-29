@@ -1,26 +1,25 @@
-import React from "react"
-import Signup from "./Signup"
-import { Container } from 'react-bootstrap'
-import { AuthProvider } from '../contexts/AuthContext'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import Login from "./Login"
-import DashBoard from "./DashBoard"
-import PrivateRoute from "./PrivateRoute"
-import ForgotPassword from "./ForgotPassword"
-import UpdateProfile from "./UpdateProfile"
-import Item from "./Item"
-import Profile from "./Profile"
-import Chat from "./Chat"
-import Match from "./Match_Screen"
-import Swipe from "./Swiping"
-import Recommended from "./Recommended"
-import Help from "./Help.js"
-import OtherUser from "./OtherUser"
-
-// function ChatWrapper() {
-//   const { userId } = useParams();
-//   return <Chat currentUser={userId} />
-// }
+import React from "react";
+import Signup from "./Signup";
+import { Container } from 'react-bootstrap';
+import { AuthProvider } from '../contexts/AuthContext';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./Login";
+import DashBoard from "./DashBoard";
+import PrivateRoute from "./PrivateRoute";
+import ForgotPassword from "./ForgotPassword";
+import UpdateProfile from "./UpdateProfile";
+import Item from "./Item";
+import Profile from "./Profile";
+import Chat from "./Chat";
+import Match from "./Match_Screen";
+import Swipe from "./Swiping";
+import Recommended from "./Recommended";
+import Help from "./Help.js";
+import Cart from "./Cart.js";
+import Checkout from "./Checkout";
+import CardPayment from "./CardPayment";
+import ThankYou from "./ThankYou";
+import PayInPerson from "./PayInPerson"; // Importing PayInPerson component
 
 function App() {
   return (
@@ -39,17 +38,21 @@ function App() {
                 <Route path="/match" element={<PrivateRoute><Match /></PrivateRoute>} />
                 <Route path="/swipe" element={<PrivateRoute><Swipe /></PrivateRoute>} />
                 <Route path="/recommended" element={<PrivateRoute><Recommended /></PrivateRoute>} />
-                <Route path="/user/:sellerId" element={<PrivateRoute><OtherUser /></PrivateRoute>} />
                 <Route path="/signup" element={<Signup/>} />
                 <Route path="/login" element={<Login/>} />
-                <Route path ="/forgot-password" element={<ForgotPassword/>} />
-				<Route path="/help" element={<PrivateRoute><Help /></PrivateRoute>} />
+                <Route path="/forgot-password" element={<ForgotPassword/>} />
+                <Route path="/help" element={<PrivateRoute><Help /></PrivateRoute>} />
+                <Route path="/cart" element={<PrivateRoute><Cart /></PrivateRoute>} />
+                <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
+                <Route path="/cardPayment" element={<PrivateRoute><CardPayment /></PrivateRoute>} />
+                <Route path="/thankyou" element={<PrivateRoute><ThankYou /></PrivateRoute>} />
+                <Route path="/payInPerson" element={<PrivateRoute><PayInPerson /></PrivateRoute>} /> {/* New route */}
               </Routes>
             </AuthProvider>
           </Router>
         </div>
       </Container>
-  )
+  );
 }
 
 export default App;
