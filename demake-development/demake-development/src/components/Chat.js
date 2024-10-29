@@ -1,82 +1,234 @@
-import React, { useState, useEffect, useRef } from 'react'; // Import useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { firestore } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 const Chat = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const userId = currentUser?.uid;
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([
-    { text: 'Hello!', sender: 'User1' },
-    { text: 'Hi there!', sender: 'User2' },
-  ]);
-  const [contacts, setContacts] = useState([
-    { name: 'User1', image: 'https://via.placeholder.com/50' },
-    { name: 'User2', image: 'https://via.placeholder.com/50' },
-    { name: 'User3', image: 'https://via.placeholder.com/50' },
-    { name: 'User4', image: 'https://via.placeholder.com/50' },
-    { name: 'User5', image: 'https://via.placeholder.com/50' },
-    { name: 'User6', image: 'https://via.placeholder.com/50' },
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null);
   const [showAddContact, setShowAddContact] = useState(false);
   const [newContact, setNewContact] = useState('');
-  
-  // Create a ref for the chat window
   const chatWindowRef = useRef(null);
 
-  const handleSendMessage = () => {
-    if (message.trim() === '') return;
+  // Fetch contacts with listeners for new messages
+  useEffect(() => {
+    if (!userId) return;
 
-    const newMessage = { text: message, sender: 'You' };
-    setMessages([...messages, newMessage]);
+    const userDocRef = firestore.collection('users').doc(userId);
+
+    const unsubscribe = userDocRef.collection('contacts').onSnapshot(snapshot => {
+      const loadedContacts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        hasNewMessage: false, // Initial state for notifications
+      }));
+      setContacts(loadedContacts);
+    });
+
+    return unsubscribe;
+  }, [userId]);
+
+  // Listen for new messages and update notification state
+  useEffect(() => {
+    const unsubscribes = contacts.map(contact => {
+      const chatId = [userId, contact.id].sort().join('_');
+      return firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp', 'asc')
+        .onSnapshot(snapshot => {
+          const newMessages = snapshot.docs.map(doc => doc.data());
+
+          // Mark as "new" only if it's the latest message from the contact and chat is unopened
+          if (newMessages.length > 0) {
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.sender !== userId && contact.id !== selectedContact?.id) {
+              setContacts(prevContacts =>
+                prevContacts.map(c =>
+                  c.id === contact.id ? { ...c, hasNewMessage: true } : c
+                )
+              );
+            }
+          }
+        });
+    });
+
+    return () => unsubscribes.forEach(unsubscribe => unsubscribe && unsubscribe());
+  }, [contacts, userId, selectedContact]);
+
+  // Load messages for the selected contact, mark as read
+  useEffect(() => {
+    if (!selectedContact || !userId) return;
+
+    const chatId = [userId, selectedContact.id].sort().join('_');
+    const messagesRef = firestore
+      .collection('chats')
+      .doc(chatId)
+      .collection('messages')
+      .orderBy('timestamp', 'asc');
+
+    const unsubscribe = messagesRef.onSnapshot(snapshot => {
+      const loadedMessages = snapshot.docs.map(doc => doc.data());
+      setMessages(loadedMessages);
+    });
+
+    // Clear notification for selected contact
+    setContacts(prevContacts =>
+      prevContacts.map(contact =>
+        contact.id === selectedContact.id ? { ...contact, hasNewMessage: false } : contact
+      )
+    );
+
+    return unsubscribe;
+  }, [selectedContact, userId]);
+
+  // Send a message to the current chat
+  const handleSendMessage = async () => {
+    if (message.trim() === '' || !selectedContact) return;
+
+    const chatId = [userId, selectedContact.id].sort().join('_');
+    const newMessage = {
+      text: message,
+      sender: userId,
+      timestamp: new Date(),
+    };
+
+    await firestore.collection('chats').doc(chatId).collection('messages').add(newMessage);
     setMessage('');
+  };
+
+  // Add a new contact to the sidebar
+  const handleAddContact = async () => {
+    if (!newContact.trim()) return;
+
+    if (contacts.some(contact => contact.email === newContact)) {
+      alert('Contact already exists');
+      setNewContact('');
+      setShowAddContact(false);
+      return;
+    }
+
+    try {
+      const contactRef = await firestore
+        .collection('users')
+        .where('email', '==', newContact)
+        .get();
+
+      if (!contactRef.empty) {
+        const contactData = contactRef.docs[0].data();
+        const contactId = contactRef.docs[0].id;
+
+        await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('contacts')
+          .doc(contactId)
+          .set({
+            image: contactData.image || 'https://via.placeholder.com/50',
+            email: contactData.email,
+          });
+
+        await firestore
+          .collection('users')
+          .doc(contactId)
+          .collection('contacts')
+          .doc(userId)
+          .set({
+            image: currentUser.photoURL || 'https://via.placeholder.com/50',
+            email: currentUser.email,
+          });
+
+        setNewContact('');
+        setShowAddContact(false);
+      } else {
+        alert('User not found');
+      }
+    } catch (error) {
+      console.error('Error adding contact: ', error);
+    }
   };
 
   const handleEnterPress = (e) => {
     if (e.key === 'Enter') handleSendMessage();
   };
 
-  const handleAddContact = () => {
-    if (newContact.trim() && !contacts.some(contact => contact.name === newContact)) {
-      setContacts([...contacts, { name: newContact, image: 'https://via.placeholder.com/50' }]);
-      setNewContact('');
-      setShowAddContact(false);
+  // Select a contact and clear notifications
+  const selectContact = (contact) => {
+    setSelectedContact(contact);
+    setMessages([]); // Clear messages when switching contacts
+
+    // Mark contact as read and clear the notification
+    setContacts(prevContacts =>
+      prevContacts.map(c =>
+        c.id === contact.id ? { ...c, hasNewMessage: false } : c
+      )
+    );
+  };
+
+  // Close a chat and remove from sidebar
+  const handleRemoveContact = async (contactId) => {
+    await firestore
+      .collection('users')
+      .doc(userId)
+      .collection('contacts')
+      .doc(contactId)
+      .delete();
+
+    if (selectedContact && selectedContact.id === contactId) {
+      setSelectedContact(null);
+      setMessages([]);
     }
   };
 
-  // Scroll to the bottom whenever messages change
-  useEffect(() => {
-    if (chatWindowRef.current) {
-      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
-    }
-  }, [messages]); // Dependency array includes messages
-
-  // Assuming you want to show the profile of the first contact as the current user being chatted with
-  const currentContact = contacts[0];
+  const currentContact = selectedContact || { name: 'No Contact Selected', image: 'https://via.placeholder.com/50' };
 
   return (
     <div style={styles.container}>
-      {/* Sidebar */}
       <div style={styles.sidebar}>
         <div style={styles.sidebarHeader}>
           <h3>Contacts</h3>
           <button style={styles.addButton} onClick={() => setShowAddContact(true)}>+</button>
         </div>
         <div style={styles.contactList}>
-          {contacts.map((contact, index) => (
-            <div key={index} style={styles.contactItem}>
-              <img src={contact.image} alt={contact.name} style={styles.profilePicture} />
-              {contact.name}
+          {contacts.map(contact => (
+            <div 
+              key={contact.id} 
+              style={{
+                ...styles.contactItem, 
+                backgroundColor: contact.hasNewMessage ? '#FFD700' : (selectedContact?.id === contact.id ? '#B22222' : 'transparent')
+              }}
+              onClick={() => selectContact(contact)}
+            >
+              <img src={contact.image} alt={contact.email} style={styles.profilePicture} />
+              {contact.email}
+              {contact.hasNewMessage && <span style={styles.notificationDot}>●</span>}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveContact(contact.id);
+                }}
+                style={styles.removeButton}
+              >
+                ✕
+              </button>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Chat window */}
       <div style={styles.chatContainer}>
-        {/* Header */}
         <div style={styles.chatHeader}>
-          <img src={currentContact.image} alt={currentContact.name} style={styles.headerProfilePicture} />
-          <h3 style={styles.headerText}>{currentContact.name}</h3>
-          <button onClick={() => navigate(-1)} style={styles.backButton}>←</button>
+          <img src={currentContact.image} alt={currentContact.email} style={styles.headerProfilePicture} />
+          <h3 style={styles.headerText}>{currentContact.email}</h3>
+          <div>
+            <button onClick={() => navigate(-1)} style={styles.backButton}>←</button>
+          </div>
         </div>
 
         <div ref={chatWindowRef} style={styles.chatWindow}>
@@ -85,18 +237,17 @@ const Chat = () => {
               key={index} 
               style={{
                 display: 'flex',
-                justifyContent: msg.sender === 'You' ? 'flex-end' : 'flex-start',
+                justifyContent: msg.sender === userId ? 'flex-end' : 'flex-start',
                 margin: '10px 0'
               }}
             >
-              <div style={msg.sender === 'You' ? styles.messageSent : styles.messageReceived}>
+              <div style={msg.sender === userId ? styles.messageSent : styles.messageReceived}>
                 {msg.text}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Input area */}
         <div style={styles.inputArea}>
           <input
             type="text"
@@ -110,19 +261,20 @@ const Chat = () => {
         </div>
       </div>
 
+      {/* Modal for adding a new contact */}
       {showAddContact && (
-        <div style={styles.modal}>
+        <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
-            <h4>Add Contact</h4>
-            <input
-              type="text"
-              value={newContact}
-              onChange={(e) => setNewContact(e.target.value)}
-              placeholder="Enter name..."
-              style={styles.modalInput}
+            <h3>Add New Contact</h3>
+            <input 
+              type="text" 
+              value={newContact} 
+              onChange={(e) => setNewContact(e.target.value)} 
+              placeholder="Email of new contact"
+              style={styles.modalInput} 
             />
-            <button onClick={handleAddContact} style={styles.modalButton}>Add</button>
-            <button onClick={() => setShowAddContact(false)} style={styles.modalButton}>Cancel</button>
+            <button onClick={handleAddContact} style={styles.modalAddButton}>Add</button>
+            <button onClick={() => setShowAddContact(false)} style={styles.modalCloseButton}>Close</button>
           </div>
         </div>
       )}
@@ -130,173 +282,164 @@ const Chat = () => {
   );
 };
 
-// Styles for desktop layout
 const styles = {
   container: {
     display: 'flex',
-    height: '95vh',
-    width: '98vw',
-    backgroundColor: '#f4f4f9',
-    borderRadius: '8px',
-    boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+    height: '90vh',
+    width: '90vw',
+    margin: '0 auto',
+    border: '1px solid #ccc',
   },
   sidebar: {
     width: '25%',
-    backgroundColor: '#8B0000',
-    color: 'white',
-    display: 'flex',
-    flexDirection: 'column',
-    borderRadius: '8px 0 0 8px',
+    borderRight: '1px solid #ccc',
+    padding: '10px',
   },
   sidebarHeader: {
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '15px',
-    fontSize: '18px',
-    borderBottom: '1px solid #ccc',
+    alignItems: 'center',
   },
   addButton: {
-    backgroundColor: 'white',
-    color: '#8B0000',
+    backgroundColor: '#4CAF50',
+    color: 'white',
     border: 'none',
-    padding: '0px 10px',
-    borderRadius: '5px',
-    cursor: 'pointer',
+    borderRadius: '4px',
+    padding: '5px 10px',
   },
   contactList: {
-    flex: 1,
-    overflowY: 'auto',
-    padding: '10px',
+    marginTop: '10px',
   },
   contactItem: {
     display: 'flex',
     alignItems: 'center',
-    padding: '15px',
-    fontSize: '22px',
+    padding: '10px',
+    borderRadius: '4px',
     cursor: 'pointer',
-    borderBottom: '1px solid #ccc',
+    position: 'relative',
   },
   profilePicture: {
-    width: '44px',
-    height: '44px',
+    width: '30px',
+    height: '30px',
     borderRadius: '50%',
     marginRight: '10px',
   },
+  notificationDot: {
+    color: 'red',
+    marginLeft: '5px',
+  },
+  removeButton: {
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    marginLeft: '15px',
+  },
   chatContainer: {
-    flex: 1,
+    flexGrow: 1,
+    padding: '10px',
     display: 'flex',
     flexDirection: 'column',
-    width: '75%',
   },
   chatHeader: {
     display: 'flex',
     alignItems: 'center',
-    padding: '10px',
-    backgroundColor: '#fff',
-    borderBottom: '1px solid #ccc',
+    justifyContent: 'space-between',
+    marginBottom: '10px',
   },
   headerProfilePicture: {
-    width: '44px',
-    height: '44px',
+    width: '30px',
+    height: '30px',
     borderRadius: '50%',
     marginRight: '10px',
   },
   headerText: {
-    flex: 1,
-    fontSize: '32px',
+    flexGrow: 1,
   },
   backButton: {
-    background: 'transparent',
+    backgroundColor: '#f44336',
+    color: 'white',
     border: 'none',
-    cursor: 'pointer',
-    fontSize: '33px',
-    marginLeft: '18px',
+    borderRadius: '4px',
+    padding: '5px 10px',
   },
   chatWindow: {
-    flex: 1,
-    padding: '20px',
+    flexGrow: 1,
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    padding: '10px',
     overflowY: 'auto',
-    backgroundColor: '#fff',
-    borderBottom: '1px solid #ccc',
-    maxWidth: '100%',
-    wordWrap: 'break-word',
+    display: 'flex',
+    flexDirection: 'column',
   },
   messageSent: {
-    backgroundColor: '#d1e7dd',
-    alignSelf: 'flex-end',
+    backgroundColor: '#007bff',
+    borderRadius: '15px',
     padding: '10px',
-    borderRadius: '10px',
-    margin: '10px 0',
-    width: 'fit-content',
-    maxWidth: '70%',
-    textAlign: 'left',
-    whiteSpace: 'normal',
-    overflowWrap: 'break-word',
+    maxWidth: '60%',
+    alignSelf: 'flex-end',
   },
   messageReceived: {
-    backgroundColor: '#9ee37d',
-    alignSelf: 'flex-start',
+    backgroundColor: '#E9E9E9',
+    borderRadius: '15px',
     padding: '10px',
-    borderRadius: '10px',
-    margin: '10px 0',
-    width: 'fit-content',
-    maxWidth: '70%',
-    textAlign: 'left',
-    whiteSpace: 'normal',
-    overflowWrap: 'break-word',
+    maxWidth: '60%',
+    alignSelf: 'flex-start',
   },
   inputArea: {
     display: 'flex',
-    padding: '10px',
-    backgroundColor: '#f9f9f9',
+    marginTop: '10px',
   },
   input: {
-    flex: 1,
+    flexGrow: 1,
     padding: '10px',
+    borderRadius: '4px',
     border: '1px solid #ccc',
-    borderRadius: '5px',
-    marginRight: '10px',
   },
   sendButton: {
-    padding: '10px 20px',
-    border: 'none',
-    backgroundColor: '#8B0000',
+    backgroundColor: '#2196F3',
     color: 'white',
-    borderRadius: '5px',
-    cursor: 'pointer',
+    border: 'none',
+    borderRadius: '4px',
+    padding: '10px 15px',
+    marginLeft: '5px',
   },
-  modal: {
+  modalOverlay: {
     position: 'fixed',
     top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
-    background: 'rgba(0, 0, 0, 0.5)',
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     display: 'flex',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   modalContent: {
     backgroundColor: 'white',
     padding: '20px',
-    borderRadius: '5px',
-    textAlign: 'center',
+    borderRadius: '8px',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
   },
   modalInput: {
+    marginBottom: '10px',
     padding: '10px',
-    margin: '10px 0',
-    width: '80%',
+    width: '100%',
+    borderRadius: '4px',
     border: '1px solid #ccc',
-    borderRadius: '5px',
   },
-  modalButton: {
-    padding: '10px 15px',
-    border: 'none',
-    margin: '5px',
-    backgroundColor: '#8B0000',
+  modalAddButton: {
+    backgroundColor: '#4CAF50',
     color: 'white',
-    borderRadius: '5px',
-    cursor: 'pointer',
+    border: 'none',
+    borderRadius: '4px',
+    padding: '5px 10px',
+  },
+  modalCloseButton: {
+    backgroundColor: '#f44336',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    padding: '5px 10px',
   },
 };
 
