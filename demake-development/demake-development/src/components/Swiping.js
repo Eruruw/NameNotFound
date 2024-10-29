@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { firestore } from "../firebase";  // Import Firestore
-import { Link } from 'react-router-dom';  // Import Link for routing
-import cartIcon from '../assets/cartIcon.jpg';  // Importing the cart icon
+import { firestore } from "../firebase"; // Import Firestore
+import { Link } from 'react-router-dom'; // Import Link for routing
+import cartIcon from '../assets/cartIcon.jpg'; // Importing the cart icon
 import { Button } from 'react-bootstrap'; // Import Button from React Bootstrap
-import { useAuth } from '../contexts/AuthContext'; // Use to get sellerId
+import { useAuth } from '../contexts/AuthContext'; // Use to get currentUser
 
 const SwipeForItems = () => {
   const { currentUser } = useAuth(); // Access currentUser from useAuth
   const [items, setItems] = useState([]);
   const [index, setIndex] = useState(0);
   const [imageIndex, setImageIndex] = useState(0);
-  const [cart, setCart] = useState([]);
   const [lastAction, setLastAction] = useState(null);
 
   useEffect(() => {
@@ -19,40 +18,60 @@ const SwipeForItems = () => {
         const itemsCollection = await firestore.collection('items').get();
         const itemsList = itemsCollection.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(item => item.sellerId !== currentUser.uid);  // Filter out current user's items
+          .filter(item => item.sellerId !== currentUser.uid); // Filter out current user's items
         setItems(itemsList);
       }
     };
     fetchItems();
   }, [currentUser]);
 
-  // Your existing code for handling cart, local storage, like/dislike actions, etc.
   const currentItem = items[index];
 
-  const handleLike = () => {
-    if (currentItem && !cart.some(item => item.id === currentItem.id)) {
-      setCart([...cart, currentItem]);
-      setLastAction({ type: 'like', item: currentItem });
+  const handleLike = async () => {
+    if (currentItem) {
+      try {
+        // Save liked item to Firestore's userLikes collection
+        await firestore.collection('userLikes').add({
+          userId: currentUser.uid,
+          sellerId: currentItem.sellerId,
+          itemId: currentItem.id,
+          likedAt: new Date()
+        });
+        console.log("Item liked and saved to Firestore.");
+      } catch (error) {
+        console.error("Error saving like to Firestore:", error);
+      }
     }
     setIndex((prevIndex) => (prevIndex + 1) % items.length);
     setImageIndex(0);
+    setLastAction({ type: 'like', item: currentItem });
   };
 
   const handleDislike = () => {
-    setLastAction({ type: 'dislike', item: currentItem });
     setIndex((prevIndex) => (prevIndex + 1) % items.length);
     setImageIndex(0);
+    setLastAction({ type: 'dislike', item: currentItem });
   };
 
   const handleUndo = () => {
-    if (lastAction) {
-      if (lastAction.type === 'like') {
-        setCart(cart.filter(item => item.id !== lastAction.item.id));
-      }
-      setIndex((prevIndex) => (prevIndex - 1 + items.length) % items.length);
-      setImageIndex(0);
-      setLastAction(null);
+    if (lastAction && lastAction.type === 'like') {
+      // Undo the like by deleting the Firestore document for that like
+      firestore.collection('userLikes')
+        .where("userId", "==", currentUser.uid)
+        .where("itemId", "==", lastAction.item.id)
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            doc.ref.delete(); // Delete each document that matches the query
+          });
+        })
+        .catch(error => {
+          console.error("Error undoing like in Firestore:", error);
+        });
     }
+    setIndex((prevIndex) => (prevIndex - 1 + items.length) % items.length);
+    setImageIndex(0);
+    setLastAction(null);
   };
 
   const nextImage = () => {
@@ -76,6 +95,9 @@ const SwipeForItems = () => {
       <div style={styles.profileButtonContainer}>
         <Link to="/profile">
           <Button variant="secondary" style={styles.profileButton}>Profile</Button>
+        </Link>
+        <Link to="/recommended">
+          <Button variant="secondary" style={styles.profileButton}>Recommended For You</Button>
         </Link>
       </div>
       <div style={styles.card}>
@@ -111,6 +133,8 @@ const SwipeForItems = () => {
     </div>
   );
 };
+
+// Define your styles here...
 const styles = {
   body: {
     fontFamily: 'Arial, sans-serif',
@@ -178,7 +202,7 @@ const styles = {
   viewProfileButton: {
     padding: '10px 15px',
     fontSize: '16px',
-    marginTop: '10px', // Add margin for spacing
+    marginTop: '10px',
   },
   imageControls: {
     display: 'flex',

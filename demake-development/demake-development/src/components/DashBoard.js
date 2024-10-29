@@ -98,7 +98,7 @@ export default function DashBoard() {
         <>
             <Card>
                 <Card.Body>
-                    <h2 className="text-center mb-4">Profile</h2>
+                    <h2 className="text-center mb-4">User Information</h2>
                     {error && <Alert variant='danger'>{error}</Alert>}
                     <strong>Email:</strong> {currentUser.email}
                     <Link to="/update-profile" className="btn btn-primary w-100 mt-3">Update Profile</Link>
@@ -132,11 +132,12 @@ export default function DashBoard() {
                 <Link to="/item">Items</Link>
             </div>
             <div className="w-100 text-center mt-2">
-                <Button variant="link" onClick={handleLogout}>Log Out</Button>
+                <Link to="/recommended">Recommended For You</Link>
             </div>
             <div className="w-100 text-center mt-2">
-                <Link to="/recommended">Recommended for You</Link>
+                <Button variant="link" onClick={handleLogout}>Log Out</Button>
             </div>
+            
         </>
     );
 }
