@@ -15,6 +15,7 @@ import Match from "./Match_Screen";
 import Swipe from "./Swiping";
 import Recommended from "./Recommended";
 import Help from "./Help.js";
+import OtherUser from "./OtherUser"
 import Cart from "./Cart.js";
 import Checkout from "./Checkout";
 import CardPayment from "./CardPayment";
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/match" element={<PrivateRoute><Match /></PrivateRoute>} />
                 <Route path="/swipe" element={<PrivateRoute><Swipe /></PrivateRoute>} />
                 <Route path="/recommended" element={<PrivateRoute><Recommended /></PrivateRoute>} />
+                <Route path="/user/:sellerId" element={<PrivateRoute><OtherUser /></PrivateRoute>} />
                 <Route path="/signup" element={<Signup/>} />
                 <Route path="/login" element={<Login/>} />
                 <Route path="/forgot-password" element={<ForgotPassword/>} />
