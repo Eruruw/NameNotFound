@@ -41,7 +41,8 @@ const Chat = () => {
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .orderBy('timestamp', 'asc')
+        .orderBy('timestamp', 'desc')
+		.limit(1)
         .onSnapshot(snapshot => {
           const newMessages = snapshot.docs.map(doc => doc.data());
 
@@ -71,7 +72,7 @@ const Chat = () => {
       .collection('chats')
       .doc(chatId)
       .collection('messages')
-      .orderBy('timestamp', 'desc');
+      .orderBy('timestamp', 'desc')
 	  .limit(10);
 
     const unsubscribe = messagesRef.onSnapshot(snapshot => {
