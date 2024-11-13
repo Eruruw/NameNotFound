@@ -14,31 +14,23 @@ function Cart() {
             }
 
             try {
-                
-                console.log("Fetching liked items for user:", currentUser.uid);
-
                 const userLikesRef = firestore.collection('userLikes');
                 const likedItemsSnapshot = await userLikesRef
                     .where("userId", "==", currentUser.uid)
                     .get();
 
                 if (likedItemsSnapshot.empty) {
-                    console.log("No liked items found for this user.");
                     setCartItems([]);
                     return;
                 }
 
                 const itemIds = likedItemsSnapshot.docs.map(doc => doc.data().itemId);
-                console.log("Liked item IDs:", itemIds);
-
                 const itemsRef = firestore.collection('items');
                 const itemsSnapshot = await itemsRef.where("__name__", "in", itemIds).get();
                 const items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Fetched item details:", items);
 
                 setCartItems(items);
-            }
-            
+            } 
             catch (error) {
                 console.error("Error fetching cart items:", error);
             }
@@ -49,7 +41,6 @@ function Cart() {
 
     const removeItem = async (itemId) => {
         try {
-
             const userLikesRef = firestore.collection('userLikes');
             const snapshot = await userLikesRef
                 .where("userId", "==", currentUser.uid)
@@ -57,10 +48,8 @@ function Cart() {
                 .get();
 
             snapshot.forEach(doc => doc.ref.delete());
-
             setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
-        }
-        
+        } 
         catch (error) {
             console.error("Error removing item from cart:", error);
         }
@@ -68,7 +57,6 @@ function Cart() {
 
     const removeAllItems = async () => {
         try {
-            
             const userLikesRef = firestore.collection('userLikes');
             const snapshot = await userLikesRef.where("userId", "==", currentUser.uid).get();
 
@@ -77,8 +65,7 @@ function Cart() {
             await batch.commit();
 
             setCartItems([]);
-        }
-        
+        } 
         catch (error) {
             console.error("Error clearing cart:", error);
         }
@@ -93,11 +80,12 @@ function Cart() {
     };
 
     const styles = {
-        container: { backgroundColor: 'black', color: 'white', textAlign: 'center', minHeight: '100vh', padding: '20px' },
-        cartItems: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' },
+        container: { backgroundColor: '#9c84c5', color: 'White', textAlign: 'center', minHeight: '100vh', padding: '20px', textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'},
+        cartItems: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px', maxHeight: '300px', overflowY: 'auto', paddingRight: '10px'},
         cartItem: { borderRadius: '10px', padding: '10px', marginBottom: '15px', textAlign: 'center', width: '300px'},
-        deleteButton: { backgroundColor: 'red', color: 'white', border: 'none', padding: '10px 20px', margin: '10px', cursor: 'pointer', fontSize: '16px', borderRadius: '5px' },
-        actionButton: { backgroundColor: '#1877F2', color: 'white', border: 'none', padding: '10px 20px', margin: '10px', cursor: 'pointer', fontSize: '16px', borderRadius: '5px' }
+        image: { maxWidth: '100%', maxHeight: '150px', borderRadius: '10px', marginBottom: '10px' },
+        deleteButton: { backgroundColor: '#d9534f', color: 'white', border: 'none', padding: '10px 20px', margin: '10px', cursor: 'pointer', fontSize: '16px', borderRadius: '5px', textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'},
+        actionButton: { backgroundColor: '#9932cc', color: 'white', border: 'none', padding: '10px 20px', margin: '10px', cursor: 'pointer', fontSize: '16px', borderRadius: '5px', textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}
     };
 
     return (
@@ -109,6 +97,9 @@ function Cart() {
                 ) : (
                     cartItems.map((item) => (
                         <div style={styles.cartItem} key={item.id}>
+                            {item.images && item.images[0] && (
+                                <img src={item.images[0]} alt="Item" style={styles.image} />
+                            )}
                             <p>{item.description}</p>
                             <p><strong>Price:</strong> ${item.price}</p>
                             <button style={styles.deleteButton} onClick={() => removeItem(item.id)}>Delete Item</button>
@@ -118,6 +109,7 @@ function Cart() {
             </div>
             <button style={styles.actionButton} onClick={proceedToCheckout}>Proceed to Checkout</button>
             <button style={styles.actionButton} onClick={removeAllItems}>Remove All Items</button>
+            <button style={styles.actionButton} onClick={() => window.location.href = '/transactions'}>View Transactions</button>
             <button style={styles.actionButton} onClick={() => window.location.href = '/swipe'}>Return to App</button>
         </div>
     );
