@@ -20,7 +20,8 @@ import Cart from "./Cart.js";
 import Checkout from "./Checkout";
 import CardPayment from "./CardPayment";
 import ThankYou from "./ThankYou";
-import PayInPerson from "./PayInPerson"; // Importing PayInPerson component
+import PayInPerson from "./PayInPerson";
+import TransactionList from "./TransactionList";
 
 function App() {
   return (
@@ -48,7 +49,8 @@ function App() {
                 <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
                 <Route path="/cardPayment" element={<PrivateRoute><CardPayment /></PrivateRoute>} />
                 <Route path="/thankyou" element={<PrivateRoute><ThankYou /></PrivateRoute>} />
-                <Route path="/payInPerson" element={<PrivateRoute><PayInPerson /></PrivateRoute>} /> {/* New route */}
+                <Route path="/payInPerson" element={<PrivateRoute><PayInPerson /></PrivateRoute>} />
+                <Route path="/transactions" element={<PrivateRoute><TransactionList /></PrivateRoute>} /> {/* New route */}
               </Routes>
             </AuthProvider>
           </Router>
