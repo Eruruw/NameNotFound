@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { firestore } from "../firebase"; // Import Firestore
-import { Link } from 'react-router-dom'; // Import Link for routing
-import cartIcon from '../assets/cartIcon.jpg'; // Importing the cart icon
-import { Button } from 'react-bootstrap'; // Import Button from React Bootstrap
-import { useAuth } from '../contexts/AuthContext'; // Use to get currentUser
+import { firestore } from "../firebase";
+import { Link } from 'react-router-dom';
+import cartIcon from '../assets/cartIcon.jpg';
+import { Button } from 'react-bootstrap';
+import { useAuth } from '../contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion'; // Import Framer Motion
 
 const SwipeForItems = () => {
-  const { currentUser } = useAuth(); // Access currentUser from useAuth
+  const { currentUser } = useAuth();
   const [items, setItems] = useState([]);
   const [index, setIndex] = useState(0);
   const [imageIndex, setImageIndex] = useState(0);
-  const [lastAction, setLastAction] = useState(null);
+  const [direction, setDirection] = useState(null); // Track swipe direction
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -18,7 +19,7 @@ const SwipeForItems = () => {
         const itemsCollection = await firestore.collection('items').get();
         const itemsList = itemsCollection.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(item => item.sellerId !== currentUser.uid); // Filter out current user's items
+          .filter(item => item.sellerId !== currentUser.uid);
         setItems(itemsList);
       }
     };
@@ -28,9 +29,9 @@ const SwipeForItems = () => {
   const currentItem = items[index];
 
   const handleLike = async () => {
+    setDirection('right'); // Set direction to right
     if (currentItem) {
       try {
-        // Save liked item to Firestore's userLikes collection
         await firestore.collection('userLikes').add({
           userId: currentUser.uid,
           sellerId: currentItem.sellerId,
@@ -44,46 +45,27 @@ const SwipeForItems = () => {
     }
     setIndex((prevIndex) => (prevIndex + 1) % items.length);
     setImageIndex(0);
-    setLastAction({ type: 'like', item: currentItem });
   };
 
   const handleDislike = () => {
+    setDirection('left'); // Set direction to left
     setIndex((prevIndex) => (prevIndex + 1) % items.length);
     setImageIndex(0);
-    setLastAction({ type: 'dislike', item: currentItem });
   };
 
-  const handleUndo = () => {
-    if (lastAction && lastAction.type === 'like') {
-      // Undo the like by deleting the Firestore document for that like
-      firestore.collection('userLikes')
-        .where("userId", "==", currentUser.uid)
-        .where("itemId", "==", lastAction.item.id)
-        .get()
-        .then((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-            doc.ref.delete(); // Delete each document that matches the query
-          });
-        })
-        .catch(error => {
-          console.error("Error undoing like in Firestore:", error);
-        });
-    }
-    setIndex((prevIndex) => (prevIndex - 1 + items.length) % items.length);
-    setImageIndex(0);
-    setLastAction(null);
-  };
-
-  const nextImage = () => {
-    if (currentItem?.images) {
-      setImageIndex((prevIndex) => (prevIndex + 1) % currentItem.images.length);
-    }
-  };
-
-  const prevImage = () => {
-    if (currentItem?.images) {
-      setImageIndex((prevIndex) => (prevIndex - 1 + currentItem.images.length) % currentItem.images.length);
-    }
+  const swipeVariants = {
+    enter: (direction) => ({
+      x: direction === 'left' ? 1000 : -1000,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction) => ({
+      x: direction === 'left' ? -1000 : 1000,
+      opacity: 0,
+    }),
   };
 
   if (items.length === 0) {
@@ -100,22 +82,35 @@ const SwipeForItems = () => {
           <Button variant="secondary" style={styles.profileButton}>Recommended For You</Button>
         </Link>
       </div>
-      <div style={styles.card}>
-        {currentItem?.images?.[imageIndex] ? (
-          <img src={currentItem.images[imageIndex]} alt="Item to buy" style={styles.image} />
-        ) : (
-          <p style={styles.description}>Image not available</p>
-        )}
-        <p style={styles.description}>{currentItem?.description}</p>
-        <p style={styles.price}>${currentItem?.price}</p>
-        <Link to={`/user/${currentItem?.sellerId}`}>
-          <Button variant="success" style={styles.viewProfileButton}>View Seller Profile</Button>
-        </Link>
-        <div style={styles.imageControls}>
-          <Button onClick={prevImage} disabled={currentItem?.images?.length <= 1}>Previous</Button>
-          <Button onClick={nextImage} disabled={currentItem?.images?.length <= 1}>Next</Button>
-        </div>
-      </div>
+      
+      <AnimatePresence custom={direction}>
+        <motion.div
+          key={currentItem?.id}
+          custom={direction}
+          variants={swipeVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.5 }}
+          style={styles.card}
+        >
+          {currentItem?.images?.[imageIndex] ? (
+            <img src={currentItem.images[imageIndex]} alt="Item to buy" style={styles.image} />
+          ) : (
+            <p style={styles.description}>Image not available</p>
+          )}
+          <p style={styles.description}>{currentItem?.description}</p>
+          <p style={styles.price}>${currentItem?.price}</p>
+          <Link to={`/user/${currentItem?.sellerId}`}>
+            <Button variant="success" style={styles.viewProfileButton}>View Seller Profile</Button>
+          </Link>
+          <div style={styles.imageControls}>
+            <Button onClick={() => setImageIndex((prevIndex) => (prevIndex - 1 + currentItem.images.length) % currentItem.images.length)} disabled={currentItem?.images?.length <= 1}>Previous</Button>
+            <Button onClick={() => setImageIndex((prevIndex) => (prevIndex + 1) % currentItem.images.length)} disabled={currentItem?.images?.length <= 1}>Next</Button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+      
       <div style={styles.controls}>
         <Button onClick={handleDislike} variant="outline-danger" style={styles.button}>
           Dislike (Swipe Left)
@@ -123,16 +118,15 @@ const SwipeForItems = () => {
         <Button onClick={handleLike} variant="outline-primary" style={styles.button}>
           Like (Swipe Right)
         </Button>
-        <Button onClick={handleUndo} variant="warning" style={styles.undoButton} disabled={!lastAction}>
-          Undo
-        </Button>
       </div>
+      
       <a href="/cart">
         <img src={cartIcon} alt="Cart" style={styles.cartIcon} />
       </a>
     </div>
   );
 };
+
 
 // Define your styles here...
 const styles = {

@@ -1,0 +1,145 @@
+/* Root color variables */
+:root {
+    --primary-color: #f5f5f5; /* Light gray to replace lavender */
+    --button-hover-color: #9c84c5;
+}
+
+/* Full-page background color or gradient */
+body, html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e3d7f3, #f4ecff); /* Light lavender gradient */
+}
+
+/* Background accent shapes (circles) */
+.background-accent {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+}
+
+.background-accent.top-left {
+    width: 300px;
+    height: 300px;
+    background-color: #b79edb;
+    top: -100px;
+    left: -100px;
+}
+
+.background-accent.bottom-right {
+    width: 250px;
+    height: 250px;
+    background-color: #9c84c5;
+    bottom: -80px;
+    right: -80px;
+}
+
+/* Signup card styling */
+.signup-card {
+    border-radius: 12px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    border: 2px solid #d3c2e3;
+    background-color: var(--primary-color); /* Light gray background */
+    color: black; /* Set all text inside to black */
+    padding: 20px;
+}
+
+/* Title styling */
+.signup-title {
+    font-weight: bold;
+    color: black; /* Set to black */
+    text-shadow: none; /* Remove text shadow */
+    font-size: 1.75rem;
+}
+
+/* Button style */
+.signup-button {
+    background: linear-gradient(135deg, #a986d6, #9c84c5);
+    border: none;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+    color: white; /* Keep button text white */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* Button hover effect */
+.signup-button:hover {
+    background: linear-gradient(135deg, #8c74b7, #8363a5);
+}
+
+/* Input field styling */
+.form-control {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #d3c2e3;
+    background-color: #ffffff; /* White background for input */
+    color: #333333; /* Dark text for input */
+}
+
+/* Input label styling */
+.form-label {
+    color: black; /* Set to black */
+    font-weight: 600;
+    text-shadow: none; /* Remove text shadow */
+}
+
+/* Text inside the card body */
+.signup-card p, .signup-card label {
+    color: black; /* Set text to black */
+    text-shadow: none;
+}
+
+/* Centered links */
+.text-center a {
+    color: black; /* Black links */
+    text-decoration: none;
+    font-weight: 500;
+    text-shadow: none; /* Remove text shadow */
+}
+
+/* Link hover effect */
+.text-center a:hover {
+    color: #555555; /* Slightly darker on hover */
+    text-decoration: underline;
+}
+
+/* Alert message for error display */
+.alert {
+    color: white;
+    background-color: #d9534f;
+    border: none;
+    border-radius: 5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* Title styling with gradient and shadow */
+.title {
+    font-size: 3rem; /* Larger font size */
+    font-weight: 900; /* Bold font */
+    background: linear-gradient(45deg, #ff7e5f, #feb47b); /* Gradient background */
+    -webkit-background-clip: text; /* Apply gradient to text */
+    color: transparent; /* Make text color transparent to reveal gradient */
+    text-shadow: none; /* Remove shadow */
+    letter-spacing: 2px; /* Slightly increase letter spacing */
+    margin-top: 40px; /* Adjust top margin */
+    animation: pop-in 1s ease-out; /* Add animation */
+}
+
+@keyframes pop-in {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
