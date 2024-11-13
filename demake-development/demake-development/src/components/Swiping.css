@@ -1,0 +1,80 @@
+/* Body container styling */
+.body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Styling for each card to make it look like a Tinder card */
+  .card {
+    width: 300px;
+    height: 400px;
+    padding: 20px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: absolute;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+  }
+  
+  /* Image styling to make the images look centered and fit within the card */
+  .image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  
+  /* Description and price text */
+  .description {
+    color: black;
+    margin-top: 10px;
+    font-weight: 500;
+  }
+  
+  .price {
+    color: limegreen;
+    font-size: 1.2em;
+    margin-top: 5px;
+  }
+  
+  /* Button container for profile and recommendation buttons */
+  .profile-button-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+  }
+  
+  .profile-button {
+    padding: 10px 15px;
+    font-size: 16px;
+    margin: 5px;
+  }
+  
+  /* View profile button styling within the card */
+  .view-profile-button {
+    padding: 10px 15px;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+  
+  /* Styling for the cart icon */
+  .cart-icon {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+  }
+  
