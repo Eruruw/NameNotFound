@@ -137,6 +137,8 @@ const Chat = () => {
   // Add a new contact to the sidebar
   const handleAddContact = async () => {
     if (!newContact.trim()) return;
+	
+	const isEmail = newContact.includes('@');
 
     if (contacts.some(contact => contact.email === newContact)) {
       alert('Contact already exists');
@@ -146,39 +148,86 @@ const Chat = () => {
     }
 
     try {
-      const contactRef = await firestore
-        .collection('users')
-        .where('email', '==', newContact)
-        .get();
+	  const contactQuery = isEmail
+        ? firestore.collection('users').where('email', '==', newContact).limit(1)
+        : firestore.collection('profiles').where('name', '==', newContact).limit(1);
+	  
+	  const contactRef = await contactQuery.get();
+	  
+	  if (isEmail) {
+		if (!contactRef.empty) {
+          const contactData = contactRef.docs[0].data();
+          const contactId = contactRef.docs[0].id;
+		
+		  const userRef = await firestore
+		    .collection('profiles')
+		    .doc(contactId)
+		    .get();
 
-      if (!contactRef.empty) {
-        const contactData = contactRef.docs[0].data();
-        const contactId = contactRef.docs[0].id;
+		  const userData = userRef.data();
+		  
+		  await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('contacts')
+            .doc(contactId)
+            .set({
+              image: userData.image || 'https://via.placeholder.com/50',
+              email: userData.name || contactData.email,
+            });
 
-        await firestore
-          .collection('users')
-          .doc(userId)
-          .collection('contacts')
-          .doc(contactId)
-          .set({
-            image: contactData.image || 'https://via.placeholder.com/50',
-            email: contactData.email,
-          });
+          await firestore
+            .collection('users')
+            .doc(contactId)
+            .collection('contacts')
+            .doc(userId)
+            .set({
+              image: currentUser.photoURL || 'https://via.placeholder.com/50',
+              email: currentUser.email,
+            });
 
-        await firestore
-          .collection('users')
-          .doc(contactId)
-          .collection('contacts')
-          .doc(userId)
-          .set({
-            image: currentUser.photoURL || 'https://via.placeholder.com/50',
-            email: currentUser.email,
-          });
+          setNewContact('');
+          setShowAddContact(false);
+		}
+	  }
+	  
+	  else if (!isEmail) {
+		if (!contactRef.empty) {
+          const userData = contactRef.docs[0].data();
+          const contactId = contactRef.docs[0].id;
+		
+		  const userRef = await firestore
+		    .collection('users')
+		    .doc(contactId)
+		    .get();
 
-        setNewContact('');
-        setShowAddContact(false);
-      } else {
-        alert('User not found');
+		  const contactData = userRef.data();
+		  
+		  await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('contacts')
+            .doc(contactId)
+            .set({
+              image: userData.image || 'https://via.placeholder.com/50',
+              email: userData.name || contactData.email,
+            });
+
+          await firestore
+            .collection('users')
+            .doc(contactId)
+            .collection('contacts')
+            .doc(userId)
+            .set({
+              image: currentUser.photoURL || 'https://via.placeholder.com/50',
+              email: currentUser.email,
+            });
+
+          setNewContact('');
+          setShowAddContact(false);
+		  }
+	    } else {
+          alert('User not found');
       }
     } catch (error) {
       console.error('Error adding contact: ', error);
@@ -306,7 +355,7 @@ const Chat = () => {
               type="text" 
               value={newContact} 
               onChange={(e) => setNewContact(e.target.value)} 
-              placeholder="Email of new contact"
+              placeholder="Name or email of contact"
               style={styles.modalInput} 
             />
             <button onClick={handleAddContact} style={styles.modalAddButton}>Add</button>
