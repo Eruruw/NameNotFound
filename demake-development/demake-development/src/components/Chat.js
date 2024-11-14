@@ -13,6 +13,7 @@ const Chat = () => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [showAddContact, setShowAddContact] = useState(false);
   const [newContact, setNewContact] = useState('');
+  const [lastMessageTimestamp, setLastMessageTimestamp] = useState(null);
   const chatWindowRef = useRef(null);
 
   // Fetch contacts with listeners for new messages
@@ -49,6 +50,25 @@ const Chat = () => {
           // Mark as "new" only if it's the latest message from the contact and chat is unopened
           if (newMessages.length > 0) {
             const lastMessage = newMessages[newMessages.length - 1];
+			const messageText = lastMessage.text.slice(0, 15); // Limit to first 15 characters
+            const messagePreview = lastMessage.sender === userId
+              ? `You: ${messageText}...`
+              : `Them: ${messageText}...`;
+			
+			// Update the contact with the last message preview
+            setContacts(prevContacts =>
+              prevContacts.map(c =>
+                c.id === contact.id
+                  ? { ...c, lastMessage: messagePreview, lastSender: lastMessage.sender }
+                  : c
+              )
+            );
+			
+			// Update the timestamp for the selected contact
+            if (contact.id === selectedContact?.id) {
+              setLastMessageTimestamp(lastMessage.timestamp);
+            }
+			
             if (lastMessage.sender !== userId && contact.id !== selectedContact?.id) {
               setContacts(prevContacts =>
                 prevContacts.map(c =>
@@ -92,6 +112,12 @@ const Chat = () => {
 
     return unsubscribe;
   }, [selectedContact, userId]);
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp.seconds * 1000);  // Convert Firestore timestamp to Date
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   // Send a message to the current chat
   const handleSendMessage = async () => {
@@ -197,7 +223,7 @@ const Chat = () => {
     <div style={styles.container}>
       <div style={styles.sidebar}>
         <div style={styles.sidebarHeader}>
-          <h3>Contacts</h3>
+          <h3>My Contacts</h3>
           <button style={styles.addButton} onClick={() => setShowAddContact(true)}>+</button>
         </div>
         <div style={styles.contactList}>
@@ -213,7 +239,7 @@ const Chat = () => {
               <img src={contact.image} alt={contact.email} style={styles.profilePicture} />
               <div style={styles.contactText}>
                 <p style={styles.contactName}>{contact.email}</p>
-                <p style={styles.contactPreview}>Last message preview...</p>
+                <p style={styles.contactPreview}>{contact.lastMessage || 'No messages yet'}</p>
               </div>
               {contact.hasNewMessage && <span style={styles.notificationDot}>●</span>}
               <button 
@@ -235,7 +261,9 @@ const Chat = () => {
           <img src={currentContact.image} alt={currentContact.email} style={styles.headerProfilePicture} />
           <div style={styles.headerInfo}>
             <h3 style={styles.headerText}>{currentContact.email}</h3>
-            <p style={styles.matchInfo}>Match info</p>
+            <p style={styles.matchInfo}>
+              {lastMessageTimestamp ? `Last message at ${formatTimestamp(lastMessageTimestamp)}` : 'No messages yet'}
+            </p>
           </div>
           <button onClick={() => navigate(-1)} style={styles.backButton}>←</button>
         </div>
@@ -317,7 +345,7 @@ const styles = {
     color: '#fff',
   },
   addButton: {
-    backgroundColor: '#009688',
+    backgroundColor: '#b19cd9',
     color: '#fff',
     border: 'none',
     borderRadius: '50%',
@@ -327,7 +355,7 @@ const styles = {
   contactList: {
     overflowY: 'auto',
     flexGrow: 1,
-    padding: '0 10px',
+    padding: '10px 0',
   },
   contactItem: {
     display: 'flex',
@@ -349,6 +377,7 @@ const styles = {
   contactName: {
     fontWeight: 'bold',
     margin: 0,
+	fontSize: '15px',
   },
   contactPreview: {
     fontSize: '0.8em',
@@ -372,14 +401,14 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     backgroundColor: '#ffffff',
-    borderRadius: '8px 0 0 8px',
   },
   chatHeader: {
     display: 'flex',
     alignItems: 'center',
     padding: '15px',
-    backgroundColor: '#f0f2f5',
-    borderBottom: '1px solid #ccc',
+    backgroundColor: '#b19cd9',
+    color: '#fff',
+    borderRadius: '0 0 0 0',
   },
   headerProfilePicture: {
     width: '40px',
@@ -396,12 +425,12 @@ const styles = {
     margin: 0,
   },
   matchInfo: {
-    fontSize: '0.9em',
-    color: '#888',
+    fontSize: '0.8em',
+    color: '#fff',
   },
   backButton: {
-    backgroundColor: '#009688',
-    color: 'white',
+    backgroundColor: '#b19cd9',
+    color: '#fff',
     border: 'none',
     borderRadius: '50%',
     padding: '5px 10px',
@@ -413,87 +442,80 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     overflowY: 'auto',
-    backgroundColor: '#e4e6eb',
+    backgroundColor: '#fff',
   },
   messageSent: {
-    backgroundColor: '#009688',
+    backgroundColor: '#9ca6d9',
     color: 'white',
-    borderRadius: '15px 15px 0 15px',
+    borderRadius: '15px',
     padding: '10px',
     maxWidth: '60%',
-    alignSelf: 'flex-end',
-    marginBottom: '10px',
   },
   messageReceived: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: '15px 15px 15px 0',
+    backgroundColor: '#d09cd9',
+    color: '#333',
+    borderRadius: '15px',
     padding: '10px',
     maxWidth: '60%',
-    alignSelf: 'flex-start',
-    marginBottom: '10px',
   },
   inputArea: {
     display: 'flex',
-    padding: '10px 15px',
-    backgroundColor: '#ffffff',
-    borderTop: '1px solid #ccc',
+    padding: '10px',
+    backgroundColor: '#fff',
   },
   input: {
     flexGrow: 1,
     padding: '10px',
     borderRadius: '20px',
-    border: '1px solid #ccc',
-    outline: 'none',
-    marginRight: '10px',
+    border: 'none',
   },
   sendButton: {
-    backgroundColor: '#009688',
+    backgroundColor: '#b19cd9',
     color: 'white',
     border: 'none',
-    borderRadius: '35%',
-    padding: '0 16px',
+    borderRadius: '40%',
+    padding: '10px 15px',
     cursor: 'pointer',
+    marginLeft: '5px',
   },
   modalOverlay: {
     position: 'fixed',
     top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     padding: '20px',
-    borderRadius: '8px',
-    width: '300px',
+    borderRadius: '10px',
     textAlign: 'center',
   },
   modalInput: {
-    width: '100%',
     padding: '10px',
-    borderRadius: '8px',
-    border: '1px solid #ccc',
+    borderRadius: '5px',
+    border: '1px solid #ddd',
+    width: '80%',
     marginBottom: '10px',
   },
   modalAddButton: {
-    backgroundColor: '#009688',
-    color: 'white',
+    backgroundColor: '#fd5068',
+    color: '#fff',
+    padding: '10px 20px',
     border: 'none',
-    borderRadius: '8px',
-    padding: '10px',
+    borderRadius: '5px',
     cursor: 'pointer',
-    marginRight: '5px',
   },
   modalCloseButton: {
-    backgroundColor: '#ff5252',
-    color: 'white',
+    backgroundColor: '#ddd',
+    padding: '10px 20px',
     border: 'none',
-    borderRadius: '8px',
-    padding: '10px',
+    borderRadius: '5px',
+    marginLeft: '10px',
     cursor: 'pointer',
   },
 };

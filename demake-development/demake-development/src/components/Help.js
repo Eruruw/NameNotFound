@@ -57,7 +57,7 @@ const Help = () => {
   return (
     <div style={styles.container}>
       {/* Header with back button */}
-      <div style={styles.header}>
+      <div style={styles.chatHeader}>
         <button onClick={() => navigate(-1)} style={styles.backButton}>←</button>
         <h3 style={styles.headerText}>AI Assistant</h3>
       </div>
@@ -99,83 +99,79 @@ const Help = () => {
   );
 };
 
-// Styles for Help.js
 const styles = {
   container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     display: 'flex',
-    flexDirection: 'column',
-    height: '95vh',
-    width: '98vw',
-    maxWidth: '600px',
-    backgroundColor: '#f4f4f9',
-    borderRadius: '8px',
-    boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-    margin: '0 auto',
+    flexDirection: 'column', // Add this line to make the layout vertical
+    height: '100vh',
+    width: '100vw',
+    backgroundColor: '#ffffff',
   },
-  header: {
+  chatHeader: {
     display: 'flex',
     alignItems: 'center',
-    padding: '10px',
-    backgroundColor: '#8B0000',
-    color: 'white',
+    padding: '15px',
+    backgroundColor: '#b19cd9',
+    color: '#fff',
+    borderRadius: '0 0 0 0',
   },
   backButton: {
-    background: 'transparent',
+    backgroundColor: '#b19cd9',
+    color: '#fff',
     border: 'none',
+    borderRadius: '50%',
+    padding: '5px 10px',
     cursor: 'pointer',
-    fontSize: '20px',
-    color: 'white',
-    marginRight: '10px',
   },
   headerText: {
     fontSize: '24px',
+    fontWeight: 'bold',
+    margin: 0,
   },
   chatWindow: {
-    flex: 1,
-    padding: '20px',
+    flexGrow: 1,
+    padding: '15px',
+    display: 'flex',
+    flexDirection: 'column',
     overflowY: 'auto',
     backgroundColor: '#fff',
-    borderBottom: '1px solid #ccc',
   },
   messageSent: {
-    backgroundColor: '#d1e7dd',
+    backgroundColor: '#9ca6d9',
+    color: 'white',
+    borderRadius: '15px',
     padding: '10px',
-    borderRadius: '10px',
-    margin: '5px 0',
-    maxWidth: '70%',
-    textAlign: 'left',
-    whiteSpace: 'normal',
-    overflowWrap: 'break-word',
+    maxWidth: '60%',
   },
   messageReceived: {
-    backgroundColor: '#9ee37d',
+    backgroundColor: '#d09cd9',
+    color: '#333',
+    borderRadius: '15px',
     padding: '10px',
-    borderRadius: '10px',
-    margin: '5px 0',
-    maxWidth: '70%',
-    textAlign: 'left',
-    whiteSpace: 'normal',
-    overflowWrap: 'break-word',
+    maxWidth: '60%',
   },
   inputArea: {
     display: 'flex',
     padding: '10px',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
   },
   input: {
-    flex: 1,
+    flexGrow: 1,
     padding: '10px',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-    marginRight: '10px',
+    borderRadius: '20px',
+    border: 'none',
   },
   sendButton: {
-    padding: '10px 20px',
-    border: 'none',
-    backgroundColor: '#8B0000',
+    backgroundColor: '#b19cd9',
     color: 'white',
-    borderRadius: '5px',
+    border: 'none',
+    borderRadius: '40%',
+    padding: '10px 15px',
     cursor: 'pointer',
+    marginLeft: '5px',
   },
 };
 
