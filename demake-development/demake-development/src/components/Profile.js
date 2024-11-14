@@ -11,21 +11,22 @@ const Profile = () => {
   const [category, setCategory] = useState('Choice1');
 
   useEffect(() => {
-    if (currentUser) {
-      loadUserData();
-    }
+    const loadUserData = async () => {
+      if (currentUser) {
+        const doc = await firestore.collection('profiles').doc(currentUser.uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          setImageSrc(data.image || null);
+          setName(data.name || '');
+          setLocation(data.location || 'Option1');
+          setCategory(data.category || 'Choice1');
+        }
+      }
+    };
+  
+    loadUserData();
   }, [currentUser]);
-
-  const loadUserData = async () => {
-    const doc = await firestore.collection('profiles').doc(currentUser.uid).get();
-    if (doc.exists) {
-      const data = doc.data();
-      setImageSrc(data.image || null);
-      setName(data.name || '');
-      setLocation(data.location || 'Option1');
-      setCategory(data.category || 'Choice1');
-    }
-  };
+  
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -94,9 +95,22 @@ const Profile = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-      }}>
-      <div style={{ width: '100%', maxWidth: '600px' }}>
-        <h1>Profile</h1>
+        backgroundColor: '#f7f7f7'
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '400px',
+          backgroundColor: '#fff',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center',
+        }}
+      >
+        <h2 style={{ color: '#ff5864', marginBottom: '20px' }}>Profile</h2>
+        
         <Form>
           <Form.Group controlId="formFile">
             <Form.Label>Upload Profile Picture</Form.Label>
@@ -109,7 +123,14 @@ const Profile = () => {
                 <img
                   src={imageSrc}
                   alt="Uploaded"
-                  style={{ maxWidth: '400px', maxHeight: '400px', borderRadius: '50%', objectFit: 'cover' }}
+                  style={{
+                    width: '150px',
+                    height: '150px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    marginBottom: '20px',
+                    border: '3px solid #ff5864'
+                  }}
                 />
               </Col>
             </Row>
@@ -122,18 +143,38 @@ const Profile = () => {
               placeholder="Enter your name here"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              style={{
+                borderRadius: '10px',
+                textAlign: 'center',
+                marginBottom: '15px'
+              }}
             />
           </Form.Group>
 
-          <Button variant="primary" onClick={handleSaveDescription}>
+          <Button
+            variant="primary"
+            onClick={handleSaveDescription}
+            style={{
+              backgroundColor: '#ff5864',
+              border: 'none',
+              borderRadius: '30px',
+              width: '100%',
+              marginBottom: '20px'
+            }}
+          >
             Save Name
           </Button>
 
-          <h1 className="mt-4">Please select your preference of items and location</h1>
+          <h3 className="mt-4" style={{ color: '#ff5864' }}>Preferences</h3>
 
           <Form.Group controlId="formLocation">
             <Form.Label>Select Location</Form.Label>
-            <Form.Control as="select" value={location} onChange={(e) => setLocation(e.target.value)}>
+            <Form.Control
+              as="select"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              style={{ borderRadius: '10px', marginBottom: '15px' }}
+            >
               <option value="Option1">Local Area</option>
               <option value="Option2">USA</option>
               <option value="Option3">World</option>
@@ -142,44 +183,51 @@ const Profile = () => {
 
           <Form.Group controlId="formCategory">
             <Form.Label>Select Category</Form.Label>
-            <Form.Control as="select" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <Form.Control
+              as="select"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              style={{ borderRadius: '10px', marginBottom: '20px' }}
+            >
               <option value="Choice1">Electronics</option>
               <option value="Choice2">Decor</option>
               <option value="Choice3">Clothing</option>
             </Form.Control>
           </Form.Group>
 
-          <Button variant="primary" onClick={handleSavePreferences}>
+          <Button
+            variant="primary"
+            onClick={handleSavePreferences}
+            style={{
+              backgroundColor: '#ff5864',
+              border: 'none',
+              borderRadius: '30px',
+              width: '100%',
+              marginBottom: '20px'
+            }}
+          >
             Save Preferences
           </Button>
 
-          <h1 className="mt-4">In case you want to start over</h1>
-
-          <Button variant="danger" onClick={handleDelete}>
-            Delete
-          </Button>
+          <h3 className="mt-4" style={{ color: '#ff5864' }}>Reset Profile</h3>
 
           <Button
-            variant="secondary"
-            style={{ position: 'absolute', top: '20px', right: '20px' }}
-            onClick={goToItem}
+            variant="danger"
+            onClick={handleDelete}
+            style={{
+              borderRadius: '30px',
+              width: '100%',
+              marginBottom: '20px'
+            }}
           >
-            Your Item
+            Delete Profile
           </Button>
-          <Button
-            variant="secondary"
-            style={{ position: 'absolute', top: '80px', right: '20px' }}
-            onClick={goToUserInfo}
-          >
-            User Information
-          </Button>
-          <Button
-            variant="secondary"
-            style={{ position: 'absolute', top: '140px', right: '20px' }}
-            onClick={goToHelp}
-          >
-            Help
-          </Button>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '20px' }}>
+            <Button variant="secondary" onClick={goToItem} style={{ borderRadius: '30px' }}>Your Item</Button>
+            <Button variant="secondary" onClick={goToUserInfo} style={{ borderRadius: '30px' }}>User Info</Button>
+            <Button variant="secondary" onClick={goToHelp} style={{ borderRadius: '30px' }}>Help</Button>
+          </div>
         </Form>
       </div>
     </Container>
@@ -187,3 +235,5 @@ const Profile = () => {
 };
 
 export default Profile;
+
+//test

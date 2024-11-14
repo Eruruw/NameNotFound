@@ -40,7 +40,7 @@ function App() {
                 <Route path="/match" element={<PrivateRoute><Match /></PrivateRoute>} />
                 <Route path="/swipe" element={<PrivateRoute><Swipe /></PrivateRoute>} />
                 <Route path="/recommended" element={<PrivateRoute><Recommended /></PrivateRoute>} />
-                <Route path="/user/:sellerId" element={<PrivateRoute><OtherUser /></PrivateRoute>} />
+                <Route path="/profile/:sellerId" element={<PrivateRoute><OtherUser /></PrivateRoute>} />
                 <Route path="/signup" element={<Signup/>} />
                 <Route path="/login" element={<Login/>} />
                 <Route path="/forgot-password" element={<ForgotPassword/>} />
@@ -60,3 +60,5 @@ function App() {
 }
 
 export default App;
+
+//test
