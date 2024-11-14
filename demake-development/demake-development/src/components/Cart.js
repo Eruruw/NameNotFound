@@ -84,8 +84,8 @@ function Cart() {
         cartItems: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px', maxHeight: '300px', overflowY: 'auto', paddingRight: '10px'},
         cartItem: { borderRadius: '10px', padding: '10px', marginBottom: '15px', textAlign: 'center', width: '300px'},
         image: { maxWidth: '100%', maxHeight: '150px', borderRadius: '10px', marginBottom: '10px' },
-        deleteButton: { backgroundColor: '#d9534f', color: 'white', border: 'none', padding: '10px 20px', margin: '10px', cursor: 'pointer', fontSize: '16px', borderRadius: '5px', textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'},
-        actionButton: { backgroundColor: '#9932cc', color: 'white', border: 'none', padding: '10px 20px', margin: '10px', cursor: 'pointer', fontSize: '16px', borderRadius: '5px', textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}
+        deleteButton: { backgroundColor: '#d9534f', color: 'white', border: 'none', padding: '10px 20px', margin: '10px', cursor: 'pointer', fontSize: '16px', borderRadius: '5px', textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'},
+        actionButton: { backgroundColor: '#9932cc', color: 'white', border: 'none', padding: '10px 20px', margin: '10px', cursor: 'pointer', fontSize: '16px', borderRadius: '5px', textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}
     };
 
     return (
