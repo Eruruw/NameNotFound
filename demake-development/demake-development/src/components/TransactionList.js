@@ -12,7 +12,7 @@ function TransactionList() {
         const fetchTransactions = async () => {
             if (currentUser) {
                 const transactionsSnapshot = await firestore
-                    .collection('users')
+                    .collection('user')
                     .doc(currentUser.uid)
                     .collection('transactions')
                     .get();
