@@ -148,7 +148,7 @@ const Item = () => {
           <Form.Control as="select" value={itemType} onChange={(e) => setItemType(e.target.value)}>
             <option value="">Select a category</option>
             <option value="electronics">Electronics</option>
-            <option value="physical_goods">Physical Goods</option>
+            <option value="physical_goods">Clothing</option>
           </Form.Control>
         </Form.Group>
       </Card>
@@ -180,3 +180,5 @@ const Item = () => {
 };
 
 export default Item;
+
+//test

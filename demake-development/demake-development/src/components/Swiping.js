@@ -87,7 +87,7 @@ const SwipeForItems = () => {
           <Dropdown.Menu>
             <Dropdown.Item eventKey="">All</Dropdown.Item>
             <Dropdown.Item eventKey="electronics">Electronics</Dropdown.Item>
-            <Dropdown.Item eventKey="physical_goods">Physical Goods</Dropdown.Item>
+            <Dropdown.Item eventKey="physical_goods">Clothing</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       </div>
@@ -235,3 +235,5 @@ const styles = {
 };
 
 export default SwipeForItems;
+
+//test
